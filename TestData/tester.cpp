@@ -42,6 +42,8 @@ typedef uint32_t (*aiGetNumChildrenFunc)(aiObject*);
 typedef void (*aiSetCurrentTimeFunc)(aiObject*, float);
 
 typedef bool (*aiHasPolyMeshFunc)(aiObject*);
+typedef bool (*aiPolyMeshHasNormalsFunc)(aiObject* obj);
+typedef bool (*aiPolyMeshHasUVsFunc)(aiObject* obj);
 typedef void (*aiPolyMeshPrepareSubmeshesFunc)(aiObject*, int);
 typedef bool (*aiPolyMeshGetNextSubmeshFunc)(aiObject*, aiSubmeshInfo*);
 typedef void (*aiPolyMeshCopySubmeshIndicesFunc)(aiObject*, int*, const aiSubmeshInfo*);
@@ -110,6 +112,8 @@ struct API
     aiSetCurrentTimeFunc aiSetCurrentTime;
     
     aiHasPolyMeshFunc aiHasPolyMesh;
+    aiPolyMeshHasNormalsFunc aiPolyMeshHasNormals;
+    aiPolyMeshHasUVsFunc aiPolyMeshHasUVs;
     aiPolyMeshPrepareSubmeshesFunc aiPolyMeshPrepareSubmeshes;
     aiPolyMeshGetNextSubmeshFunc aiPolyMeshGetNextSubmesh;
     aiPolyMeshCopySubmeshIndicesFunc aiPolyMeshCopySubmeshIndices;
@@ -158,6 +162,8 @@ struct API
         aiSetCurrentTime = GetDsoSymbol<aiSetCurrentTimeFunc>(dso, "aiSetCurrentTime");
         
         aiHasPolyMesh = GetDsoSymbol<aiHasPolyMeshFunc>(dso, "aiHasPolyMesh");
+        aiPolyMeshHasNormals = GetDsoSymbol<aiPolyMeshHasNormalsFunc>(dso, "aiPolyMeshHasNormals");
+        aiPolyMeshHasUVs = GetDsoSymbol<aiPolyMeshHasUVsFunc>(dso, "aiPolyMeshHasUVs");
         aiPolyMeshPrepareSubmeshes = GetDsoSymbol<aiPolyMeshPrepareSubmeshesFunc>(dso, "aiPolyMeshPrepareSubmeshes");
         aiPolyMeshGetNextSubmesh = GetDsoSymbol<aiPolyMeshGetNextSubmeshFunc>(dso, "aiPolyMeshGetNextSubmesh");
         aiPolyMeshCopySubmeshIndices = GetDsoSymbol<aiPolyMeshCopySubmeshIndicesFunc>(dso, "aiPolyMeshCopySubmeshIndices");
@@ -197,6 +203,69 @@ void EnumerateMesh(aiObject *obj, void *userdata)
         {
             std::cout << "  Submesh " << i << std::endl;
             
+            /*
+            struct aiSubmeshInfo
+{
+    int index;
+    int face_count;
+    int vertex_count;
+    int triangle_count;
+};
+            */
+            std::cout << "    index: " << submesh.index << std::endl;
+            std::cout << "    faces: " << submesh.face_count << std::endl;
+            std::cout << "    triangles: " << submesh.triangle_count << std::endl;
+            std::cout << "    vertices: " << submesh.vertex_count << std::endl;
+
+            int *indices = new int[submesh.triangle_count * 3];
+            float *vertices = new float[submesh.vertex_count * 3];
+            float *normals = 0;
+            float *uvs = 0;
+
+            std::cout << "    copy indices..." << std::endl;
+            data->api->aiPolyMeshCopySubmeshIndices(obj, indices, &submesh);
+
+            std::cout << "    copy vertices..." << std::endl;
+            data->api->aiPolyMeshCopySubmeshVertices(obj, (abcV3*)vertices, &submesh);
+
+            float *P = vertices;
+            for (int j=0; j<submesh.vertex_count; ++j, P+=3)
+            {
+                std::cout << "      P[" << j << "] = (" << P[0] << ", " << P[1] << ", " << P[2] << ")" << std::endl;
+            }
+
+            if (data->api->aiPolyMeshHasNormals(obj))
+            {
+                normals = new float[submesh.vertex_count * 3];
+                std::cout << "    copy normals..." << std::endl;
+                data->api->aiPolyMeshCopySubmeshNormals(obj, (abcV3*)normals, &submesh);
+
+                float *N = normals;
+                for (int j=0; j<submesh.vertex_count; ++j, N+=3)
+                {
+                    std::cout << "      N[" << j << "] = (" << N[0] << ", " << N[1] << ", " << N[2] << ")" << std::endl;
+                }
+            }
+
+            if (data->api->aiPolyMeshHasUVs(obj))
+            {
+                uvs = new float[submesh.vertex_count * 2];
+                std::cout << "    copy uvs..." << std::endl;
+                data->api->aiPolyMeshCopySubmeshUVs(obj, (abcV2*)uvs, &submesh);
+
+                float *uv = uvs;
+                for (int j=0; j<submesh.vertex_count; ++j, uv+=2)
+                {
+                    std::cout << "      uv[" << j << "] = (" << uv[0] << ", " << uv[1] << ")" << std::endl;
+                }
+            }
+
+            int *index = indices;
+            for (int j=0; j<submesh.triangle_count; ++j, index+=3)
+            {
+                std::cout << "      triangle[" << j << "] = " << index[0] << ", " << index[1] << ", " << index[2] << std::endl;
+            }
+
             ++i;
         }
     }
