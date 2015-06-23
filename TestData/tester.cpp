@@ -19,6 +19,13 @@ struct aiSubmeshInfo
     int triangle_count;
 };
 
+struct aiFacesets
+{
+    int count;
+    int *face_counts;
+    int *face_indices;
+};
+
 #ifdef _WIN32
 typedef void (__stdcall *aiNodeEnumerator)(aiObject*, void*);
 #else
@@ -44,7 +51,7 @@ typedef bool (*aiPolyMeshHasNormalsFunc)(aiObject* obj);
 typedef bool (*aiPolyMeshHasUVsFunc)(aiObject* obj);
 typedef uint32_t (*aiPolyMeshGetVertexBufferLengthFunc)(aiObject* obj);
 typedef void (*aiPolyMeshFillVertexBufferFunc)(aiObject* obj, abcV3*, abcV3*, abcV2*);
-typedef uint32_t (*aiPolyMeshPrepareSubmeshesFunc)(aiObject*);
+typedef uint32_t (*aiPolyMeshPrepareSubmeshesFunc)(aiObject*, const aiFacesets*);
 typedef bool (*aiPolyMeshGetNextSubmeshFunc)(aiObject*, aiSubmeshInfo*);
 typedef void (*aiPolyMeshFillSubmeshIndicesFunc)(aiObject*, int*, const aiSubmeshInfo*);
 
@@ -213,7 +220,7 @@ void EnumerateMesh(aiObject *obj, void *userdata)
             std::cout << std::endl;
         }
 
-        uint32_t nsm = data->api->aiPolyMeshPrepareSubmeshes(obj);
+        uint32_t nsm = data->api->aiPolyMeshPrepareSubmeshes(obj, 0);
 
         std::cout << "  " << nsm << " submesh(es)" << std::endl;
         
