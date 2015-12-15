@@ -13,12 +13,14 @@
 
 
 int     g_num_instances;
-float4  g_scale;
+float4  g_model_scale;
+float4  g_trans_scale;
 float4  g_texel_size;
 int     g_batch_begin;
 
 int     GetNumInstances()       { return g_num_instances; }
-float3  GetBaseScale()          { return g_scale.xyz; }
+float3  GetModelScale()         { return g_model_scale.xyz; }
+float3  GetTransScale()         { return g_trans_scale.xyz; }
 int     GetBatchBegin()         { return g_batch_begin; }
 int     GetInstanceID(float2 i) { return i.x + g_batch_begin; }
 

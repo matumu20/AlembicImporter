@@ -13,7 +13,7 @@ void ApplyInstanceTransformSimplified(float2 id, inout float4 vertex, inout floa
         return;
     }
 
-    vertex.xyz *= GetBaseScale();
+    vertex.xyz *= GetModelScale();
 #if ENABLE_INSTANCE_SCALE
     {
         vertex.xyz *= GetInstanceScale(instance_id);

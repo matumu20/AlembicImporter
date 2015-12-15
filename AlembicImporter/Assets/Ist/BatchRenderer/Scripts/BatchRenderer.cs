@@ -424,7 +424,8 @@ public class BatchRenderer : BatchRendererBase
         ForEachEveryMaterials((v) =>
         {
             v.SetInt("g_num_instances", m_instance_count);
-            v.SetVector("g_scale", m_scale);
+            v.SetVector("g_model_scale", m_model_scale);
+            v.SetVector("g_trans_scale", m_trans_scale);
         });
     }
 

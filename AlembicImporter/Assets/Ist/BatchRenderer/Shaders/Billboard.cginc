@@ -18,7 +18,7 @@ void ApplyBillboardTransform(float2 id, inout float4 vertex, inout float3 normal
     float3 look = normalize(pos-camera_pos);
     float3 up = float3(0.0, 1.0, 0.0);
 
-    vertex.xyz *= GetBaseScale();
+    vertex.xyz *= GetModelScale();
 #if ENABLE_INSTANCE_SCALE
     {
         vertex.xyz *= GetInstanceScale(instance_id);
@@ -77,7 +77,7 @@ void ApplyViewPlaneBillboardTransform(float2 id, inout float4 vertex, inout floa
     }
 
     float3 pos = GetInstanceTranslation(instance_id);
-    vertex.xyz *= GetBaseScale();
+    vertex.xyz *= GetModelScale();
 #if ENABLE_INSTANCE_SCALE
     {
         vertex.xyz *= GetInstanceScale(instance_id);

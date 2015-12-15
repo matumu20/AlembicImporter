@@ -16,7 +16,8 @@ public abstract class BatchRendererBase : MonoBehaviour
     public LayerMask m_layer_selector = 1;
     public bool m_cast_shadow = false;
     public bool m_receive_shadow = false;
-    public Vector3 m_scale = Vector3.one;
+    public Vector3 m_model_scale = Vector3.one;
+    public Vector3 m_trans_scale = Vector3.one;
     public Camera m_camera;
     public bool m_flush_on_LateUpdate = true;
     public Vector3 m_bounds_size = Vector3.one;

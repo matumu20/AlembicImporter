@@ -12,7 +12,7 @@ void ApplyInstanceTransform(int instance_id, inout float4 vertex, inout float3 n
         vertex.xyz *= 0.0;
         return;
     }
-    vertex.xyz *= GetBaseScale();
+    vertex.xyz *= GetModelScale();
 #if ENABLE_INSTANCE_SCALE
     vertex.xyz *= GetInstanceScale(instance_id);
 #endif

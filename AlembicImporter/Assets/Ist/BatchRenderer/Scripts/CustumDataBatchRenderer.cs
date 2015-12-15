@@ -96,7 +96,7 @@ public class CustumDataBatchRenderer<InstanceData> : BatchRendererBase
         {
             v.SetInt("g_num_max_instances", m_max_instances);
             v.SetInt("g_num_instances", m_instance_count);
-            v.SetVector("g_scale", m_scale);
+            v.SetVector("g_scale", m_model_scale);
         });
     }
 
