@@ -25,20 +25,32 @@ public abstract class AlembicElement : MonoBehaviour
 
     static void ConfigCallback(IntPtr __this, ref AbcAPI.aiConfig config)
     {
-        var _this = GCHandle.FromIntPtr(__this).Target as AlembicElement;
-        _this.AbcGetConfig(ref config);
+        GCHandle gch = GCHandle.FromIntPtr(__this);
+        if (gch.IsAllocated)
+        {
+            var _this = gch.Target as AlembicElement;
+            _this.AbcGetConfig(ref config);
+        }
     }
 
     static void SampleCallback(IntPtr __this, AbcAPI.aiSample sample, bool topologyChanged)
     {
-        var _this = GCHandle.FromIntPtr(__this).Target as AlembicElement;
-        _this.AbcSampleUpdated(sample, topologyChanged);
+        GCHandle gch = GCHandle.FromIntPtr(__this);
+        if (gch.IsAllocated)
+        {
+            var _this = gch.Target as AlembicElement;
+            _this.AbcSampleUpdated(sample, topologyChanged);
+        }
     }
     
     static void DestroyCallback(IntPtr __this)
     {
-        var _this = GCHandle.FromIntPtr(__this).Target as AlembicElement;
-        _this.AbcInvalidate();
+        GCHandle gch = GCHandle.FromIntPtr(__this);
+        if (gch.IsAllocated)
+        {
+            var _this = gch.Target as AlembicElement;
+            _this.AbcInvalidate(true);
+        }
     }
 
 
@@ -54,8 +66,6 @@ public abstract class AlembicElement : MonoBehaviour
 
     public virtual void OnDestroy()
     {
-        m_thisHandle.Free();
-        
         if (!Application.isPlaying)
         {
 #if UNITY_EDITOR
@@ -64,23 +74,19 @@ public abstract class AlembicElement : MonoBehaviour
                 if (m_abcStream != null)
                 {
                     m_abcStream.AbcDestroyElement(this);
-                }
-                else
-                {
-                    AbcInvalidate();
+                    return;
                 }
             }
 #else
             if (m_abcStream != null)
             {
                 m_abcStream.AbcDestroyElement(this);
-            }
-            else
-            {
-                AbcInvalidate();
+                return;
             }
 #endif
         }
+        
+        AbcInvalidate(false);
     }
     
     void Update()
@@ -95,8 +101,12 @@ public abstract class AlembicElement : MonoBehaviour
         m_abcStream = abcStream;
         m_abcObj = abcObj;
         m_abcSchema = abcSchema;
-        m_thisHandle = GCHandle.Alloc(this);
         m_trans = GetComponent<Transform>();
+
+        if (!m_thisHandle.IsAllocated)
+        {
+            m_thisHandle = GCHandle.Alloc(this);
+        }
 
         IntPtr ptr = GCHandle.ToIntPtr(m_thisHandle);
 
@@ -105,11 +115,33 @@ public abstract class AlembicElement : MonoBehaviour
         AbcAPI.aiSchemaSetSampleCallback(abcSchema, SampleCallback, ptr);
     }
 
-    public virtual void AbcInvalidate()
+    public virtual void AbcInvalidate(bool abcObjDeleted)
     {
+        if (m_abcObj.ptr != (System.IntPtr)0)
+        {
+            if (!abcObjDeleted)
+            {
+                AbcAPI.aiSetDestroyCallback(m_abcObj, null, (System.IntPtr)0);
+            }
+            m_abcObj.ptr = (System.IntPtr)0;
+        }
+
+        if (m_abcSchema.ptr != (System.IntPtr)0)
+        {
+            if (!abcObjDeleted)
+            {
+                AbcAPI.aiSchemaSetConfigCallback(m_abcSchema, null, (System.IntPtr)0);
+                AbcAPI.aiSchemaSetSampleCallback(m_abcSchema, null, (System.IntPtr)0);
+            }
+            m_abcSchema.ptr = (System.IntPtr)0;
+        }
+
+        if (m_thisHandle.IsAllocated)
+        {
+            m_thisHandle.Free();
+        }
+
         m_abcStream = null;
-        m_abcObj.ptr = (System.IntPtr)0;
-        m_abcSchema.ptr = (System.IntPtr)0;
     }
 
     public bool AbcIsValid()
