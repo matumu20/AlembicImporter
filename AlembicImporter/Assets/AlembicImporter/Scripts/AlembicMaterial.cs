@@ -44,16 +44,16 @@ public class AlembicMaterial : MonoBehaviour
                 int splitIndex = 0;
                 int submeshIndex = 0;
 
-                if (abcmesh.m_submeshes.Count < materials.Count)
+                if (abcmesh.GetSubMeshCount() < materials.Count)
                 {
                     // should have at least materials.Count submeshes
-                    Debug.Log("\"" + abcmesh.name + "\": Not enough submeshes for all assigned materials. (" + materials.Count + " material(s) for " + abcmesh.m_submeshes.Count + " submesh(es))");
+                    Debug.Log("\"" + abcmesh.name + "\": Not enough submeshes for all assigned materials. (" + materials.Count + " material(s) for " + abcmesh.GetSubMeshCount() + " submesh(es))");
                     return;
                 }
 
                 MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
 
-                foreach (AlembicMesh.Submesh submesh in abcmesh.m_submeshes)
+                foreach (AlembicMesh.Submesh submesh in abcmesh.GetSubMeshes())
                 {
                     if (submesh.splitIndex != splitIndex)
                     {

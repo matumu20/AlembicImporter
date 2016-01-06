@@ -9,7 +9,6 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class AlembicMesh : AlembicElement
 {
-    [Serializable]
     public class Split
     {
         public Vector3[] positionCache;
@@ -27,7 +26,6 @@ public class AlembicMesh : AlembicElement
         public Vector3 size;
     }
 
-    [Serializable]
     public class Submesh
     {
         public int[] indexCache;
@@ -43,10 +41,10 @@ public class AlembicMesh : AlembicElement
     public AbcAPI.aiTangentsModeOverride m_tangentsMode = AbcAPI.aiTangentsModeOverride.InheritStreamSetting;
     public bool m_cacheTangentsSplits = true;
     
-    [HideInInspector] public bool hasFacesets = false;
-    [HideInInspector] public List<Submesh> m_submeshes = new List<Submesh>();
-    [HideInInspector] public List<Split> m_splits = new List<Split>();
 
+    bool m_hasFacesets = false;
+    List<Submesh> m_submeshes = new List<Submesh>();
+    List<Split> m_splits = new List<Split>();
     AbcAPI.aiMeshSummary m_summary;
     AbcAPI.aiMeshSampleSummary m_sampleSummary;
     bool m_freshSetup = false;
@@ -117,6 +115,16 @@ public class AlembicMesh : AlembicElement
         }
     }
 
+    public int GetSubMeshCount()
+    {
+        return m_submeshes.Count;
+    }
+    
+    public List<Submesh> GetSubMeshes()
+    {
+        return m_submeshes;
+    }
+
     public override void AbcSetup(AlembicStream abcStream,
                                   AbcAPI.aiObject abcObj,
                                   AbcAPI.aiSchema abcSchema)
@@ -157,7 +165,7 @@ public class AlembicMesh : AlembicElement
 
         AlembicMaterial abcMaterials = m_trans.GetComponent<AlembicMaterial>();
 
-        config.forceUpdate = m_freshSetup || (abcMaterials != null ? abcMaterials.HasFacesetsChanged() : hasFacesets);
+        config.forceUpdate = m_freshSetup || (abcMaterials != null ? abcMaterials.HasFacesetsChanged() : m_hasFacesets);
     }
 
     public override void AbcSampleUpdated(AbcAPI.aiSample sample, bool topologyChanged)
@@ -177,13 +185,13 @@ public class AlembicMesh : AlembicElement
                 topologyChanged = true;
             }
 
-            hasFacesets = (abcMaterials.GetFacesetsCount() > 0);
+            m_hasFacesets = (abcMaterials.GetFacesetsCount() > 0);
         }
-        else if (hasFacesets)
+        else if (m_hasFacesets)
         {
             AbcVerboseLog("AlembicMesh.AbcSampleUpdated: Facesets cleared, force topology update");
             topologyChanged = true;
-            hasFacesets = false;
+            m_hasFacesets = false;
         }
 
         if (m_freshSetup)
