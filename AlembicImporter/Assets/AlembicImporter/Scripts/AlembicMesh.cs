@@ -127,13 +127,14 @@ public class AlembicMesh : AlembicElement
 
         m_freshSetup = true;
     }
-    
-    public override void AbcDestroy()
-    {
-    }
 
     public override void AbcGetConfig(ref AbcAPI.aiConfig config)
     {
+        if (!AbcIsValid())
+        {
+            return;
+        }
+        
         if (m_normalsMode != AbcAPI.aiNormalsModeOverride.InheritStreamSetting)
         {
             config.normalsMode = (AbcAPI.aiNormalsMode) m_normalsMode;
@@ -161,6 +162,11 @@ public class AlembicMesh : AlembicElement
 
     public override void AbcSampleUpdated(AbcAPI.aiSample sample, bool topologyChanged)
     {
+        if (!AbcIsValid())
+        {
+            return;
+        }
+        
         AlembicMaterial abcMaterials = m_trans.GetComponent<AlembicMaterial>();
 
         if (abcMaterials != null)
@@ -325,7 +331,7 @@ public class AlembicMesh : AlembicElement
 
     public override void AbcUpdate()
     {
-        if (!AbcIsDirty())
+        if (!AbcIsValid() || !AbcIsDirty())
         {
             return;
         }

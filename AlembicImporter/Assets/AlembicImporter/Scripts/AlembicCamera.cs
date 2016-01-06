@@ -30,6 +30,11 @@ public class AlembicCamera : AlembicElement
 
     public override void AbcGetConfig(ref AbcAPI.aiConfig config)
     {
+        if (!AbcIsValid())
+        {
+            return;
+        }
+        
         if (m_aspectRatioMode != AbcAPI.aiAspectRatioModeOverride.InheritStreamSetting)
         {
             config.aspectRatio = AbcAPI.GetAspectRatio((AbcAPI.aiAspectRatioMode) m_aspectRatioMode);
@@ -38,6 +43,11 @@ public class AlembicCamera : AlembicElement
 
     public override void AbcSampleUpdated(AbcAPI.aiSample sample, bool topologyChanged)
     {
+        if (!AbcIsValid())
+        {
+            return;
+        }
+        
         AbcAPI.aiCameraGetData(sample, ref m_abcData);
 
         AbcDirty();
@@ -45,7 +55,7 @@ public class AlembicCamera : AlembicElement
 
     public override void AbcUpdate()
     {
-        if (AbcIsDirty() || m_lastIgnoreClippingPlanes != m_ignoreClippingPlanes)
+        if (AbcIsValid() && (AbcIsDirty() || m_lastIgnoreClippingPlanes != m_ignoreClippingPlanes))
         {
             m_trans.forward = -m_trans.parent.forward;
             m_camera.fieldOfView = m_abcData.fieldOfView;

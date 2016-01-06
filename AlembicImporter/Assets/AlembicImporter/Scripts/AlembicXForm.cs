@@ -18,6 +18,11 @@ public class AlembicXForm : AlembicElement
 
     public override void AbcSampleUpdated(AbcAPI.aiSample sample, bool topologyChanged)
     {
+        if (!AbcIsValid())
+        {
+            return;
+        }
+        
         AbcAPI.aiXFormGetData(sample, ref m_abcData);
         
         AbcDirty();
@@ -25,7 +30,7 @@ public class AlembicXForm : AlembicElement
 
     public override void AbcUpdate()
     {
-        if (AbcIsDirty())
+        if (AbcIsValid() && AbcIsDirty())
         {
             if (m_abcData.inherits)
             {

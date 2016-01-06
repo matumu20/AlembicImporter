@@ -28,12 +28,16 @@ public class AlembicLight : AlembicElement
 
     public override void AbcSampleUpdated(AbcAPI.aiSample sample, bool topologyChanged)
     {
+        if (!AbcIsValid())
+        {
+            return;
+        }
         // ToDo
     }
 
     public override void AbcUpdate()
     {
-        if (AbcIsDirty())
+        if (AbcIsValid() && AbcIsDirty())
         {
             // ToDo
 

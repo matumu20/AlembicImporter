@@ -11,6 +11,8 @@
 aiObject::aiObject()
     : m_ctx(0)
     , m_parent(0)
+    , m_destroyCb(nullptr)
+    , m_destroyCbArg(nullptr)
 {
 }
 
@@ -18,6 +20,8 @@ aiObject::aiObject(aiContext *ctx, abcObject &abc)
     : m_ctx(ctx)
     , m_abc(abc)
     , m_parent(0)
+    , m_destroyCb(nullptr)
+    , m_destroyCbArg(nullptr)
 {
     if (m_abc.valid())
     {
@@ -45,6 +49,21 @@ aiObject::aiObject(aiContext *ctx, abcObject &abc)
 
 aiObject::~aiObject()
 {
+    invokeDestroyCallback();
+}
+
+void aiObject::setDestroyCallback(aiDestroyCallback cb, void *arg)
+{
+    m_destroyCb = cb;
+    m_destroyCbArg = arg;
+}
+
+void aiObject::invokeDestroyCallback()
+{
+    if (m_destroyCb)
+    {
+        m_destroyCb(m_destroyCbArg);
+    }
 }
 
 void aiObject::addChild(aiObject *c)

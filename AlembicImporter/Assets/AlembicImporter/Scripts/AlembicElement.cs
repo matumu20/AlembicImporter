@@ -34,6 +34,12 @@ public abstract class AlembicElement : MonoBehaviour
         var _this = GCHandle.FromIntPtr(__this).Target as AlembicElement;
         _this.AbcSampleUpdated(sample, topologyChanged);
     }
+    
+    static void DestroyCallback(IntPtr __this)
+    {
+        var _this = GCHandle.FromIntPtr(__this).Target as AlembicElement;
+        _this.AbcInvalidate();
+    }
 
 
     public T GetOrAddComponent<T>() where T : Component
@@ -49,28 +55,37 @@ public abstract class AlembicElement : MonoBehaviour
     public virtual void OnDestroy()
     {
         m_thisHandle.Free();
-
+        
         if (!Application.isPlaying)
         {
 #if UNITY_EDITOR
             if (!EditorApplication.isPlayingOrWillChangePlaymode)
             {
-                AbcDestroy();
-
                 if (m_abcStream != null)
                 {
-                    m_abcStream.AbcRemoveElement(this);
+                    m_abcStream.AbcDestroyElement(this);
+                }
+                else
+                {
+                    AbcInvalidate();
                 }
             }
 #else
-            AbcDestroy();
-            
             if (m_abcStream != null)
             {
-                m_abcStream.AbcRemoveElement(this);
+                m_abcStream.AbcDestroyElement(this);
+            }
+            else
+            {
+                AbcInvalidate();
             }
 #endif
         }
+    }
+    
+    void Update()
+    {
+        AbcUpdate();
     }
 
     public virtual void AbcSetup(AlembicStream abcStream,
@@ -85,12 +100,22 @@ public abstract class AlembicElement : MonoBehaviour
 
         IntPtr ptr = GCHandle.ToIntPtr(m_thisHandle);
 
+        AbcAPI.aiSetDestroyCallback(abcObj, DestroyCallback, ptr);
         AbcAPI.aiSchemaSetConfigCallback(abcSchema, ConfigCallback, ptr);
         AbcAPI.aiSchemaSetSampleCallback(abcSchema, SampleCallback, ptr);
     }
 
-    public virtual void AbcDestroy()
+    public virtual void AbcInvalidate()
     {
+        m_abcStream = null;
+        m_abcObj.ptr = (System.IntPtr)0;
+        m_abcSchema.ptr = (System.IntPtr)0;
+    }
+
+    public bool AbcIsValid()
+    {
+        // Is only checking m_abcSchema sufficient? (should)
+        return (m_abcSchema.ptr != (System.IntPtr)0);
     }
 
     public AbcAPI.aiSample AbcGetSample()
@@ -114,7 +139,6 @@ public abstract class AlembicElement : MonoBehaviour
 
     // Called in main thread
     public abstract void AbcUpdate();
-
 
     protected void AbcVerboseLog(string msg)
     {

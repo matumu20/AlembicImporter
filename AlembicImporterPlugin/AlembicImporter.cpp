@@ -122,6 +122,13 @@ aiCLinkage aiExport const char* aiGetFullNameS(aiObject* obj)
     return (obj ? obj->getFullName() : "");
 }
 
+aiCLinkage aiExport void aiSetDestroyCallback(aiObject* obj, aiDestroyCallback cb, void* arg)
+{
+    if (obj)
+    {
+        obj->setDestroyCallback(cb, arg);
+    }
+}
 
 aiCLinkage aiExport void aiSchemaSetSampleCallback(aiSchemaBase* schema, aiSampleCallback cb, void* arg)
 {

@@ -236,10 +236,12 @@ struct aiFacesets
 typedef void (__stdcall *aiNodeEnumerator)(aiObject *node, void *userData);
 typedef void (__stdcall *aiConfigCallback)(void *csObj, aiConfig *config);
 typedef void (__stdcall *aiSampleCallback)(void *csObj, aiSampleBase *sample, bool topologyChanged);
+typedef void (__stdcall *aiDestroyCallback)(void *csObj);
 #else
 typedef void (*aiNodeEnumerator)(aiObject *node, void *userData);
 typedef void (*aiConfigCallback)(void *csObj, aiConfig *config);
 typedef void (*aiSampleCallback)(void *csObj, aiSampleBase *sample, bool topologyChanged);
+typedef void (*aiDestroyCallback)(void *csObj);
 #endif
 
 
@@ -261,6 +263,7 @@ aiCLinkage aiExport void            aiUpdateSamples(aiContext* ctx, float time);
 aiCLinkage aiExport void            aiEnumerateChild(aiObject *obj, aiNodeEnumerator e, void *userData);
 aiCLinkage aiExport const char*     aiGetNameS(aiObject* obj);
 aiCLinkage aiExport const char*     aiGetFullNameS(aiObject* obj);
+aiCLinkage aiExport void            aiSetDestroyCallback(aiObject* obj, aiDestroyCallback cb, void* arg);
 
 aiCLinkage aiExport void            aiSchemaSetSampleCallback(aiSchemaBase* schema, aiSampleCallback cb, void* arg);
 aiCLinkage aiExport void            aiSchemaSetConfigCallback(aiSchemaBase* schema, aiConfigCallback cb, void* arg);

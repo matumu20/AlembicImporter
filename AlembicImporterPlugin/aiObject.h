@@ -32,6 +32,9 @@ public:
     aiPolyMesh& getPolyMesh();
     aiCamera&   getCamera();
 
+    void        setDestroyCallback(aiDestroyCallback cb, void *arg);
+    void        invokeDestroyCallback();
+
 public:
 
     aiContext*  getContext();
@@ -44,11 +47,14 @@ private:
     abcObject   m_abc;
     aiObject    *m_parent;
     std::vector<aiObject*> m_children;
-
+    
     std::vector<aiSchemaBase*>  m_schemas;
     std::unique_ptr<aiXForm>    m_xform;
     std::unique_ptr<aiPolyMesh> m_polymesh;
     std::unique_ptr<aiCamera>   m_camera;
+    
+    aiDestroyCallback m_destroyCb;
+    void*             m_destroyCbArg;
 };
 
 

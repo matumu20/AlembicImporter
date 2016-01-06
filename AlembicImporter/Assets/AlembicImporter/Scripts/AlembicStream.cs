@@ -44,7 +44,6 @@ public class AlembicStream : MonoBehaviour
     public int m_sampleCacheSize = 0;
     public bool m_forceRefresh;
 
-    [HideInInspector] public HashSet<AlembicElement> m_elements = new HashSet<AlembicElement>();
     [HideInInspector] public AbcAPI.aiConfig m_config;
 
     bool m_loaded;
@@ -61,7 +60,6 @@ public class AlembicStream : MonoBehaviour
     float m_timeEps = 0.001f;
     AbcAPI.aiContext m_abc;
     Transform m_trans;
-    // keep a list of aiObjects to update?
     string m_lastPathToAbc;
 
     // --- For internal use ---
@@ -191,40 +189,36 @@ public class AlembicStream : MonoBehaviour
         m_lastPathToAbc = m_pathToAbc;
     }
 
-    void AbcUpdateElements()
+    int AbcGetElements(ref HashSet<AlembicElement> elements)
     {
-        if (m_verbose)
+        elements.Clear();
+        
+        // would a single gameObject.GetComponentsInChildren<AlembicElement>(true) work?
+        
+        foreach (AlembicMesh mesh in gameObject.GetComponentsInChildren<AlembicMesh>(true))
         {
-            Debug.Log("AlembicStream.AbcUpdateElement: " + m_elements.Count + " element(s).");
+            elements.Add(mesh);
         }
-
-        foreach (AlembicElement e in m_elements)
+        foreach (AlembicXForm xform in gameObject.GetComponentsInChildren<AlembicXForm>(true))
         {
-            if (e != null)
-            {
-                e.AbcUpdate();
-            }
+            elements.Add(xform);
         }
+        foreach (AlembicCamera camera in gameObject.GetComponentsInChildren<AlembicCamera>(true))
+        {
+            elements.Add(camera);
+        }
+        foreach (AlembicLight light in gameObject.GetComponentsInChildren<AlembicLight>(true))
+        {
+            elements.Add(light);
+        }
+        
+        return elements.Count;
     }
 
-    void AbcDetachElements()
+    void AbcCleanupSubTree(Transform tr, ref HashSet<AlembicElement> elements, ref List<GameObject> objsToDelete)
     {
-        if (m_verbose)
-        {
-            Debug.Log("AlembicStream.AbcDetachElement: " + m_elements.Count + " element(s).");
-        }
-
-        foreach (AlembicElement e in m_elements)
-        {
-            if (e != null)
-            {
-                e.m_abcStream = null;
-            }
-        }
-    }
-
-    void AbcCleanupSubTree(Transform tr, ref List<GameObject> objsToDelete)
-    {
+        // Would a single GetComponent<AlembicElement>() work?
+        
         AlembicElement elem = tr.gameObject.GetComponent<AlembicMesh>() as AlembicElement;
         if (elem == null)
         {
@@ -239,7 +233,7 @@ public class AlembicStream : MonoBehaviour
             }
         }
 
-        if (elem != null && !m_elements.Contains(elem))
+        if (elem != null && !elements.Contains(elem))
         {
             if (m_verbose)
             {
@@ -251,24 +245,22 @@ public class AlembicStream : MonoBehaviour
         {
             foreach (Transform childTr in tr)
             {
-                AbcCleanupSubTree(childTr, ref objsToDelete);
+                AbcCleanupSubTree(childTr, ref elements, ref objsToDelete);
             }
         }
     }
 
-    void AbcCleanupTree()
+    void AbcCleanupTree(ref HashSet<AlembicElement> elements)
     {
         List<GameObject> objsToDelete = new List<GameObject>();
-
+        
         foreach (Transform tr in gameObject.transform)
         {
-            AbcCleanupSubTree(tr, ref objsToDelete);
+            AbcCleanupSubTree(tr, ref elements, ref objsToDelete);
         }
 
         foreach (GameObject obj in objsToDelete)
         {
-            // will this also destroy children?
-            // should I call obj.Destroy() instead
             GameObject.DestroyImmediate(obj);
         }
     }
@@ -293,7 +285,6 @@ public class AlembicStream : MonoBehaviour
                 m_preserveStartTime = true;
                 m_forceRefresh = true;
                 m_trans = GetComponent<Transform>();
-                m_elements.Clear();
 
                 AbcSyncConfig();
 
@@ -301,7 +292,7 @@ public class AlembicStream : MonoBehaviour
 
                 if (m_verbose)
                 {
-                    Debug.Log("AlembicStream.AbcRecoverContext: Succeeded (" + m_elements.Count + " element(s))");
+                    Debug.Log("AlembicStream.AbcRecoverContext: Succeeded");
                 }
 
                 return true;
@@ -367,23 +358,21 @@ public class AlembicStream : MonoBehaviour
                         Debug.Log("AlembicStream.AbcUpdate: Path to alembic file changed");
                     }
 
-                    AbcDetachElements();
+                    // List all existing AlembicElement components in current tree
+                    HashSet<AlembicElement> elements = new HashSet<AlembicElement>();
+                    AbcGetElements(ref elements);
 
                     AbcAPI.aiDestroyContext(m_abc);
 
-                    m_elements.Clear();
-
                     AbcLoad(true);
 
-                    AbcCleanupTree();
+                    AbcCleanupTree(ref elements);
                 }
                 else
                 {
                     AbcSyncConfig();
 
                     AbcAPI.aiUpdateSamples(m_abc, abcTime);
-
-                    AbcUpdateElements();
                 }   
                 
                 AbcSetLastUpdateState(abcTime, aspectRatio);
@@ -393,31 +382,18 @@ public class AlembicStream : MonoBehaviour
 
     // --- public api ---
     
-    public void AbcAddElement(AlembicElement e)
+    public void AbcDestroyElement(AlembicElement e)
     {
         if (e != null)
         {
             if (m_verbose)
             {
-                Debug.Log("AlembicStream.AbcAddElement: \"" + e.gameObject.name + "\"");
-            }
-            m_elements.Add(e);
-        }
-    }
-
-    public void AbcRemoveElement(AlembicElement e)
-    {
-        if (e != null)
-        {
-            if (m_verbose)
-            {
-                Debug.Log("AlembicStream.AbcRemoveElement: \"" + e.gameObject.name + "\"");
+                Debug.Log("AlembicStream.AbcDestroyElement: \"" + e.gameObject.name + "\"");
             }
             AbcAPI.aiDestroyObject(m_abc, e.m_abcObj);
-            m_elements.Remove(e);
         }
     }
-
+    
     public void AbcLoad(bool createMissingNodes=false)
     {
         if (m_pathToAbc == null)
@@ -469,12 +445,10 @@ public class AlembicStream : MonoBehaviour
 #if UNITY_EDITOR
             if (!EditorApplication.isPlayingOrWillChangePlaymode)
             {
-                AbcDetachElements();
                 AbcAPI.aiDestroyContext(m_abc);
                 m_abc = default(AbcAPI.aiContext);
             }
 #else
-            AbcDetachElements();
             AbcAPI.aiDestroyContext(m_abc);
             m_abc = default(AbcAPI.aiContext);
 #endif

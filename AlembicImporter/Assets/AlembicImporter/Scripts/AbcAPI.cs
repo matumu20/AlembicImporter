@@ -75,6 +75,7 @@ public class AbcAPI
     public delegate void aiNodeEnumerator(aiObject obj, IntPtr userData);
     public delegate void aiConfigCallback(IntPtr _this, ref aiConfig config);
     public delegate void aiSampleCallback(IntPtr _this, aiSample sample, bool topologyChanged);
+    public delegate void aiDestroyCallback(IntPtr _this);
 
     public struct aiConfig
     {
@@ -203,6 +204,7 @@ public class AbcAPI
 
     [DllImport ("AlembicImporter")] public static extern void       aiUpdateSamples(aiContext ctx, float time);
     
+    [DllImport ("AlembicImporter")] public static extern void       aiSetDestroyCallback(aiObject obj, aiDestroyCallback cb, IntPtr arg);
     [DllImport ("AlembicImporter")] public static extern void       aiEnumerateChild(aiObject obj, aiNodeEnumerator e, IntPtr userData);
     [DllImport ("AlembicImporter")] private static extern IntPtr    aiGetNameS(aiObject obj);
     [DllImport ("AlembicImporter")] private static extern IntPtr    aiGetFullNameS(aiObject obj);
@@ -397,8 +399,6 @@ public class AbcAPI
             elem.AbcSetup(ic.abcStream, obj, schema);
             aiSchemaUpdateSample(schema, ic.time);
             elem.AbcUpdate();
-            
-            ic.abcStream.AbcAddElement(elem);
         }
 
         ic.parent = trans;
