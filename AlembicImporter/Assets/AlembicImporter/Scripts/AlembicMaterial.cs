@@ -460,6 +460,7 @@ public class AlembicMaterial : MonoBehaviour
         {
             abcstream.m_forceRefresh = true;
             abcstream.SendMessage("AbcUpdate", abcstream.m_time, SendMessageOptions.DontRequireReceiver);
+            EditorUtility.SetDirty(root);
         }
     }
 
