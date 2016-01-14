@@ -463,15 +463,23 @@ public class AlembicStream : MonoBehaviour
         AbcSetLastUpdateState(AbcTime(0.0f), AbcAPI.GetAspectRatio(m_aspectRatioMode));
     }
 
+    // In play mode, do the update in 'FixedUpdate' rather than 'Update' method to ensure
+    //   precedence of alembic sampling on the actual unity mesh update that happens
+    //   in AlembicElement components 'Update' method
+
     void Update()
+    {
+        if (!Application.isPlaying)
+        {
+            AbcUpdate(m_time);
+        }
+    }
+
+    void FixedUpdate()
     {
         if (Application.isPlaying)
         {
             AbcUpdate(Time.time);
-        }
-        else
-        {
-            AbcUpdate(m_time);
         }
     }
 }
