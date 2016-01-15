@@ -50,6 +50,10 @@
 
 #include <limits>
 #include "half.h"
+#ifdef max
+    #undef max
+    #undef min
+#endif
 
 namespace std {
 

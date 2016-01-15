@@ -38,9 +38,9 @@
 #define _Alembic_AbcGeom_Foundation_h_
 
 #include <Alembic/Abc/All.h>
-
 #include <ImathMatrixAlgo.h>
 #include <ImathEuler.h>
+#include <algorithm>
 
 
 namespace Alembic {
