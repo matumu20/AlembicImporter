@@ -6,6 +6,7 @@ class aiSchemaBase;
 class aiXForm;
 class aiPolyMesh;
 class aiCamera;
+class aiPoints;
 
 class aiObject
 {
@@ -27,10 +28,12 @@ public:
     bool        hasXForm() const;
     bool        hasPolyMesh() const;
     bool        hasCamera() const;
+    bool        hasPoints() const;
 
     aiXForm&    getXForm();
     aiPolyMesh& getPolyMesh();
     aiCamera&   getCamera();
+    aiPoints&   getPoints();
 
     void        setDestroyCallback(aiDestroyCallback cb, void *arg);
     void        invokeDestroyCallback();
@@ -47,11 +50,12 @@ private:
     abcObject   m_abc;
     aiObject    *m_parent;
     std::vector<aiObject*> m_children;
-    
+
     std::vector<aiSchemaBase*>  m_schemas;
     std::unique_ptr<aiXForm>    m_xform;
     std::unique_ptr<aiPolyMesh> m_polymesh;
     std::unique_ptr<aiCamera>   m_camera;
+    std::unique_ptr<aiPoints>   m_points;
     
     aiDestroyCallback m_destroyCb;
     void*             m_destroyCbArg;

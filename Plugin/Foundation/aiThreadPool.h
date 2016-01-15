@@ -1,4 +1,4 @@
-﻿#ifndef aiThreadPool_h
+#ifndef aiThreadPool_h
 #define aiThreadPool_h
 
 #ifndef aiWithTBB
@@ -46,7 +46,6 @@ public:
 
     template<class F> void run(const F &f);
     void wait();
-
     void taskDone();
 
 private:

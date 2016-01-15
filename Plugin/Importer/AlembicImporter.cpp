@@ -7,6 +7,7 @@
 #include "aiXForm.h"
 #include "aiPolyMesh.h"
 #include "aiCamera.h"
+#include "aiPoints.h"
 
 #ifdef aiWindows
     #include <windows.h>
@@ -256,3 +257,48 @@ aiCLinkage aiExport void aiCameraGetData(aiCameraSample* sample, aiCameraData *o
         sample->getData(*outData);
     }
 }
+
+
+aiCLinkage aiExport bool aiHasPoints(aiObject* obj)
+{
+    return (obj ? obj->hasPoints() : false);
+}
+
+aiCLinkage aiExport aiPoints* aiGetPoints(aiObject* obj)
+{
+    return (obj ? &(obj->getPoints()) : 0);
+}
+
+aiCLinkage aiExport int aiPointsGetCount(aiPointsSample *sample)
+{
+    return (sample ? sample->getPointsCount() : 0);
+}
+
+aiCLinkage aiExport void aiPointsGetSampleSummary(aiPointsSample* sample, aiPointsSampleSummary *summary)
+{
+    if (sample)
+    {
+        sample->getSummary(*summary);
+    }
+}
+
+aiCLinkage aiExport void aiPointsGetData(aiPointsSample* sample, aiPointsSampleData *outData)
+{
+    if (sample)
+    {
+        sample->getData(*outData);
+    }
+}
+
+// aiCLinkage aiExport int aiPointsGetPeakVertexCount(aiPoints *schema)
+// {
+//     return (schema ? schema->getPeakVertexCount() : 0);
+// }
+
+// aiCLinkage aiExport void aiPointsGetRawData(aiPointsSample* sample, aiPointsSampleData *outData)
+// {
+//     if (sample)
+//     {
+//         sample->getRawData(*outData);
+//     }
+// }

@@ -167,6 +167,22 @@ public class AbcAPI
         public float focalLength;
     }
 
+    public struct aiPointsSampleSummary
+    {
+        [MarshalAs(UnmanagedType.U1)] public bool hasVelocities;
+        [MarshalAs(UnmanagedType.U1)] public bool hasIDs;
+    }
+
+    public struct aiPointsSampleData
+    {
+        public IntPtr positions;
+        public IntPtr velocities;
+        public IntPtr ids;
+        public Vector3 boundsCenter;
+        public Vector3 boundsExtents;
+        // public int count;
+    }
+
     public struct aiContext
     {
         public System.IntPtr ptr;
@@ -186,7 +202,6 @@ public class AbcAPI
     {
         public System.IntPtr ptr;
     }
-
 
 
     [DllImport ("AlembicImporter")] public static extern void       aiEnableFileLog(bool on, string path);
@@ -230,11 +245,18 @@ public class AbcAPI
     [DllImport ("AlembicImporter")] public static extern int        aiPolyMeshGetSplitSubmeshCount(aiSample sample, int splitIndex);
     [DllImport ("AlembicImporter")] public static extern bool       aiPolyMeshGetNextSubmesh(aiSample sample, ref aiSubmeshSummary smi);
     [DllImport ("AlembicImporter")] public static extern void       aiPolyMeshFillSubmeshIndices(aiSample sample, ref aiSubmeshSummary smi, ref aiSubmeshData data);
-    
+
     [DllImport ("AlembicImporter")] public static extern bool       aiHasCamera(aiObject obj);
     [DllImport ("AlembicImporter")] public static extern aiSchema   aiGetCamera(aiObject obj);
     [DllImport ("AlembicImporter")] public static extern void       aiCameraGetData(aiSample sample, ref aiCameraData data);
-    
+
+    [DllImport("AlembicImporter")] public static extern bool        aiHasPoints(aiObject obj);
+    [DllImport("AlembicImporter")] public static extern aiSchema    aiGetPoints(aiObject obj);
+    [DllImport("AlembicImporter")] public static extern int         aiPointsGetCount(aiSample sample);
+    [DllImport("AlembicImporter")] public static extern void        aiPointsGetSampleSummary(aiSample sample, ref aiPointsSampleSummary summary);
+    [DllImport("AlembicImporter")] public static extern void        aiPointsGetData(aiSample sample, ref aiPointsSampleData data);
+    //[DllImport("AlembicImporter")] public static extern int         aiPointsGetPeakVertexCount(aiSchema schema);
+    //[DllImport("AlembicImporter")] public static extern void        aiPointsGetRawData(aiSample sample, ref aiPointsSampleData data);
 
     class ImportContext
     {
@@ -392,6 +414,11 @@ public class AbcAPI
         {
             elem = GetOrAddComponent<AlembicCamera>(trans.gameObject);
             schema = aiGetCamera(obj);
+        }
+        else if (aiHasPoints(obj))
+        {
+            elem = GetOrAddComponent<AlembicPoints>(trans.gameObject);
+            schema = aiGetPoints(obj);
         }
 
         if (elem)

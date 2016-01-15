@@ -94,3 +94,5 @@ class   aiPolyMesh;
 class   aiPolyMeshSample;
 class   aiCamera;
 class   aiCameraSample;
+class   aiPoints;
+class   aiPointsSample;
