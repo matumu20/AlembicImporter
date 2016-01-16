@@ -1,30 +1,46 @@
-﻿#include "pch.h"
+#include "pch.h"
 
-#if defined(aiSupportTextureMesh)
-
+#if defined(aiSupportTextureData)
+#include "AlembicImporter.h"
 #include "aiGraphicsDevice.h"
 
 
-int aiGetPixelSize(aiETextureFormat format)
+int aiGetPixelSize(aiTextureFormat format)
 {
     switch (format)
     {
-    case aiE_ARGB32:    return 4;
+    case aiTextureFormat_ARGB32:    return 4;
 
-    case aiE_ARGBHalf:  return 8;
-    case aiE_RGHalf:    return 4;
-    case aiE_RHalf:     return 2;
+    case aiTextureFormat_ARGBHalf:  return 8;
+    case aiTextureFormat_RGHalf:    return 4;
+    case aiTextureFormat_RHalf:     return 2;
 
-    case aiE_ARGBFloat: return 16;
-    case aiE_RGFloat:   return 8;
-    case aiE_RFloat:    return 4;
+    case aiTextureFormat_ARGBFloat: return 16;
+    case aiTextureFormat_RGFloat:   return 8;
+    case aiTextureFormat_RFloat:    return 4;
 
-    case aiE_ARGBInt:   return 16;
-    case aiE_RGInt:     return 8;
-    case aiE_RInt:      return 4;
+    case aiTextureFormat_ARGBInt:   return 16;
+    case aiTextureFormat_RGInt:     return 8;
+    case aiTextureFormat_RInt:      return 4;
     }
     return 0;
 }
+
+
+namespace {
+    thread_local std::vector<char> *g_conversion_buffer;
+}
+
+void* aiGetConversionBuffer(size_t size)
+{
+    if (g_conversion_buffer == nullptr)
+    {
+        g_conversion_buffer = new std::vector<char>();
+    }
+    g_conversion_buffer->resize(size);
+    return &(*g_conversion_buffer)[0];
+}
+
 
 
 aiIGraphicsDevice* aiCreateGraphicsDeviceOpenGL(void *device);
@@ -99,10 +115,10 @@ aiCLinkage aiExport void aiFinalizeGraphicsDevice()
 
 
 
-#if !defined(aiMaster) && defined(aiWindows)
+#if !defined(aiMaster) && defined(_WIN32)
 
-// PatchLibrary で突っ込まれたモジュールは UnitySetGraphicsDevice() が呼ばれないので、
-// DLL_PROCESS_ATTACH のタイミングで先にロードされているモジュールからデバイスをもらって同等の処理を行う。
+// UnitySetGraphicsDevice() in injected (by PatchLibrary) modules will not be called automatically.
+// so we need to do equivalent procedure in DllMain()
 BOOL WINAPI DllMain(HINSTANCE, DWORD reasonForCall, LPVOID reserved)
 {
     if (reasonForCall == DLL_PROCESS_ATTACH)
@@ -111,7 +127,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD reasonForCall, LPVOID reserved)
         if (m) {
             auto proc = (aiGetGraphicsDeviceT)::GetProcAddress(m, "aiGetGraphicsDevice");
             if (proc) {
-                aiGraphicsDevice *dev = proc();
+                aiIGraphicsDevice *dev = proc();
                 if (dev) {
                     UnitySetGraphicsDevice(dev->getDevicePtr(), dev->getDeviceType(), kGfxDeviceEventInitialize);
                 }
@@ -124,11 +140,11 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD reasonForCall, LPVOID reserved)
     return TRUE;
 }
 
-// "DllMain already defined in MSVCRT.lib" 対策
+// prevent "DllMain already defined in MSVCRT.lib"
 #ifdef _X86_
-extern "C" { int _afxForceUSRDLL; }
+    extern "C" { int _afxForceUSRDLL; }
 #else
-extern "C" { int __afxForceUSRDLL; }
+    extern "C" { int __afxForceUSRDLL; }
 #endif
 
 #endif

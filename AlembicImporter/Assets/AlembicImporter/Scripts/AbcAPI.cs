@@ -255,8 +255,8 @@ public class AbcAPI
     [DllImport("AlembicImporter")] public static extern int         aiPointsGetCount(aiSample sample);
     [DllImport("AlembicImporter")] public static extern void        aiPointsGetSampleSummary(aiSample sample, ref aiPointsSampleSummary summary);
     [DllImport("AlembicImporter")] public static extern void        aiPointsGetData(aiSample sample, ref aiPointsSampleData data);
-    //[DllImport("AlembicImporter")] public static extern int         aiPointsGetPeakVertexCount(aiSchema schema);
-    //[DllImport("AlembicImporter")] public static extern void        aiPointsGetRawData(aiSample sample, ref aiPointsSampleData data);
+    [DllImport("AlembicImporter")] public static extern int         aiPointsGetPeakVertexCount(aiSchema schema);
+    [DllImport("AlembicImporter")] public static extern void        aiPointsGetRawData(aiSample sample, ref aiPointsSampleData data);
 
     class ImportContext
     {

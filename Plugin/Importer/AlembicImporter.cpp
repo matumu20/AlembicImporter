@@ -9,13 +9,12 @@
 #include "aiCamera.h"
 #include "aiPoints.h"
 
-#ifdef aiWindows
-    #include <windows.h>
-
+#ifdef _WIN32
+#   include <windows.h>
 #   define aiBreak() DebugBreak()
-#else // aiWindows
+#else // _WIN32
 #   define aiBreak() __builtin_trap()
-#endif // aiWindows
+#endif // _WIN32
 
 
 aiCLinkage aiExport void aiEnableFileLog(bool on, const char *path)
@@ -290,15 +289,70 @@ aiCLinkage aiExport void aiPointsGetData(aiPointsSample* sample, aiPointsSampleD
     }
 }
 
-// aiCLinkage aiExport int aiPointsGetPeakVertexCount(aiPoints *schema)
-// {
-//     return (schema ? schema->getPeakVertexCount() : 0);
-// }
+aiCLinkage aiExport int aiPointsGetPeakVertexCount(aiPoints *schema)
+{
+    return (schema ? schema->getPeakVertexCount() : 0);
+}
 
-// aiCLinkage aiExport void aiPointsGetRawData(aiPointsSample* sample, aiPointsSampleData *outData)
-// {
-//     if (sample)
-//     {
-//         sample->getRawData(*outData);
-//     }
-// }
+aiCLinkage aiExport void aiPointsGetRawData(aiPointsSample* sample, aiPointsSampleData *outData)
+{
+    if (sample)
+    {
+        sample->getRawData(*outData);
+    }
+}
+
+#ifdef aiSupportTextureData
+
+#include "GraphicsDevice/aiGraphicsDevice.h"
+
+aiCLinkage aiExport bool aiPointsCopyPositionsToTexture(aiPointsSampleData *data, void *tex, int width, int height, aiTextureFormat fmt)
+{
+    if (data == nullptr)
+    {
+        return false;
+    }
+
+    if (fmt == aiTextureFormat_ARGBFloat)
+    {
+        return aiWriteTextureWithConversion(tex, width, height, fmt, data->positions, data->count,
+            [](void *dst, const abcV3 *src, int i) {
+                ((abcV4*)dst)[i] = abcV4(src[i].x, src[i].y, src[i].z, 0.0f);
+            });
+    }
+    else
+    {
+        DebugLog("aiPointsCopyPositionsToTexture(): format must be ARGBFloat");
+        return false;
+    }
+}
+
+aiCLinkage aiExport bool aiPointsCopyIDsToTexture(aiPointsSampleData *data, void *tex, int width, int height, aiTextureFormat fmt)
+{
+    if (data == nullptr)
+    {
+        return false;
+    }
+
+    if (fmt == aiTextureFormat_RInt)
+    {
+        return aiWriteTextureWithConversion(tex, width, height, fmt, data->ids, data->count,
+            [](void *dst, const uint64_t *src, int i) {
+                ((int32_t*)dst)[i] = (int32_t)(src[i]);
+            });
+    }
+    else if (fmt == aiTextureFormat_RFloat)
+    {
+        return aiWriteTextureWithConversion(tex, width, height, fmt, data->ids, data->count,
+            [](void *dst, const uint64_t *src, int i) {
+                ((float*)dst)[i] = (float)(src[i]);
+            });
+    }
+    else
+    {
+        DebugLog("aiPointsCopyIDsToTexture(): format must be RFloat or RInt");
+        return false;
+    }
+}
+
+#endif // aiSupportTextureData

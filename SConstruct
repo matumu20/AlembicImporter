@@ -35,8 +35,8 @@ if excons.GetArgument("debug", 0, int) != 0:
 if excons.GetArgument("debug-log", 0, int) != 0:
   defines.append("aiDebugLog")
 
-if excons.GetArgument("texture-mesh", 0, int) != 0:
-  defines.append("aiSupportTextureMesh")
+if excons.GetArgument("texture-data", 0, int) != 0:
+  defines.append("aiSupportTextureData")
   sources.extend(["Plugin/GraphicsDevice/aiGraphicsDevice.cpp"])
   install_files["unity/AlembicImporter/Meshes"] = glob.glob("AlembicImporter/Assets/AlembicImporter/Meshes/IndexOnlyMesh.asset*")
   install_files["unity/AlembicImporter/Materials"] = glob.glob("AlembicImporter/Assets/AlembicImporter/Materials/AlembicStandard.mat*")

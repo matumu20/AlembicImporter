@@ -17,30 +17,27 @@ public class AlembicPoints : AlembicElement
     Vector3[] m_abcPositions;
     Int64[] m_abcIDs;
     Vector3[] m_abcVelocities;
-    //int m_abcPeakVertexCount;
+    int m_abcPeakVertexCount;
 
     // properties
     public AbcAPI.aiPointsSampleData abcData { get { return m_abcData; } }
     public Vector3[] abcPositions { get { return m_abcPositions; } }
     public Vector3[] abcVelocities { get { return m_abcVelocities; } }
     public Int64[] abcIDs { get { return m_abcIDs; } }
-    //public int abcPeakVertexCount
-    //{
-    //    get {
-    //        if (m_abcPeakVertexCount == 0)
-    //        {
-    //            m_abcPeakVertexCount = AbcAPI.aiPointsGetPeakVertexCount(m_abcSchema);
-    //        }
-    //        return m_abcPeakVertexCount;
-    //    }
-    //}
+    public int abcPeakVertexCount
+    {
+       get {
+           if (m_abcPeakVertexCount == 0)
+           {
+               m_abcPeakVertexCount = AbcAPI.aiPointsGetPeakVertexCount(m_abcSchema);
+           }
+           return m_abcPeakVertexCount;
+       }
+    }
 
     public override void AbcSampleUpdated(AbcAPI.aiSample sample, bool topologyChanged)
     {
-        // aiPointsGetSampleSummary(sample, ref summary)
         int pointCount = AbcAPI.aiPointsGetCount(sample);
-        
-        AbcAPI.aiPointsGetSampleSummary(sample, ref m_summary);
         
         if (pointCount > 0)
         {
@@ -52,6 +49,8 @@ public class AlembicPoints : AlembicElement
             {
                 Array.Resize(ref m_abcPositions, pointCount);
             }
+            
+            AbcAPI.aiPointsGetSampleSummary(sample, ref m_summary);
             
             if (m_summary.hasVelocities)
             {

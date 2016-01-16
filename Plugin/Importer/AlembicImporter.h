@@ -2,9 +2,9 @@
 #define AlembicImporter_h
 
 // options:
-// graphics device options are relevant only if aiSupportTextureMesh is defined
+// graphics device options are relevant only if aiSupportTextureData is defined
 // 
-// #define aiSupportTextureMesh
+// #define aiSupportTextureData
 //  #define aiSupportD3D11
 //  #define aiSupportD3D9
 //  #define aiSupportOpenGL
@@ -12,6 +12,26 @@
 // #define aiWithTBB
 
 #include "pch.h"
+
+#define aiCLinkage extern "C"
+#ifdef _MSC_VER
+#   define aiExport __declspec(dllexport)
+#else
+#   define aiExport __attribute__((visibility("default")))
+#endif
+
+class   aiContext;
+class   aiObject;
+class   aiSchemaBase;
+class   aiSampleBase;
+class   aiXForm;
+class   aiXFormSample;
+class   aiPolyMesh;
+class   aiPolyMeshSample;
+class   aiPoints;
+class   aiPointsSample;
+class   aiCamera;
+class   aiCameraSample;
 
 enum aiNormalsMode
 {
@@ -253,13 +273,13 @@ struct aiPointsSampleData
     uint64_t *ids;
     abcV3 boundsCenter;
     abcV3 boundsExtents;
-    // int32_t count;
+    int32_t count;
 
     inline aiPointsSampleData()
         : positions(nullptr)
         , velocities(nullptr)
         , ids(nullptr)
-        // , count(0)
+        , count(0)
     {
     }
 
@@ -330,7 +350,13 @@ aiCLinkage aiExport aiPoints*       aiGetPoints(aiObject* obj);
 aiCLinkage aiExport void            aiPointsGetSampleSummary(aiPointsSample* sample, aiPointsSampleSummary *summary);
 aiCLinkage aiExport int             aiPointsGetCount(aiPointsSample* sample);
 aiCLinkage aiExport void            aiPointsGetData(aiPointsSample* sample, aiPointsSampleData *outData);
-//aiCLinkage aiExport int             aiPointsGetPeakVertexCount(aiPoints *schema);
-//aiCLinkage aiExport void            aiPointsGetRawData(aiPointsSample* sample, aiPointsSampleData *outData);
+aiCLinkage aiExport int             aiPointsGetPeakVertexCount(aiPoints *schema);
+aiCLinkage aiExport void            aiPointsGetRawData(aiPointsSample* sample, aiPointsSampleData *outData);
+
+
+#ifdef aiSupportTextureData
+aiCLinkage aiExport bool            aiPointsCopyPositionsToTexture(aiPointsSampleData *data, void *tex, int width, int height, aiTextureFormat fmt);
+aiCLinkage aiExport bool            aiPointsCopyIDsToTexture(aiPointsSampleData *data, void *tex, int width, int height, aiTextureFormat fmt);
+#endif // aiSupportTextureData
 
 #endif // AlembicImporter_h

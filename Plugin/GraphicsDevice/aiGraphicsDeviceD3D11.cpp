@@ -1,7 +1,10 @@
 ﻿#include "pch.h"
 
-#if defined(aiSupportTextureMesh) && defined(aiSupportD3D11)
+#if defined(aiSupportTextureData) && defined(aiSupportD3D11)
+#include "AlembicImporter.h"
 #include "aiGraphicsDevice.h"
+#include "aiLogger.h"
+#include "aiMisc.h"
 #include <d3d11.h>
 const int aiD3D11MaxStagingTextures = 32;
 
@@ -13,12 +16,12 @@ public:
     ~aiGraphicsDeviceD3D11();
     void* getDevicePtr() override;
     int getDeviceType() override;
-    bool readTexture(void *outBuf, size_t bufsize, void *tex, int width, int height, aiETextureFormat format) override;
-    bool writeTexture(void *outTex, int width, int height, aiETextureFormat format, const void *buf, size_t bufsize) override;
+    bool readTexture(void *outBuf, size_t bufsize, void *tex, int width, int height, aiTextureFormat format) override;
+    bool writeTexture(void *outTex, int width, int height, aiTextureFormat format, const void *buf, size_t bufsize) override;
 
 private:
     void clearStagingTextures();
-    ID3D11Texture2D* findOrCreateStagingTexture(int width, int height, aiETextureFormat format);
+    ID3D11Texture2D* findOrCreateStagingTexture(int width, int height, aiTextureFormat format);
 
 private:
     ID3D11Device *m_device;
@@ -64,29 +67,29 @@ void* aiGraphicsDeviceD3D11::getDevicePtr() { return m_device; }
 int aiGraphicsDeviceD3D11::getDeviceType() { return kGfxRendererD3D11; }
 
 
-static DXGI_FORMAT aiGetInternalFormatD3D11(aiETextureFormat fmt)
+static DXGI_FORMAT aiGetInternalFormatD3D11(aiTextureFormat fmt)
 {
     switch (fmt)
     {
-    case aiE_ARGB32:    return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+    case aiTextureFormat_ARGB32:    return DXGI_FORMAT_R8G8B8A8_TYPELESS;
 
-    case aiE_ARGBHalf:  return DXGI_FORMAT_R16G16B16A16_FLOAT;
-    case aiE_RGHalf:    return DXGI_FORMAT_R16G16_FLOAT;
-    case aiE_RHalf:     return DXGI_FORMAT_R16_FLOAT;
+    case aiTextureFormat_ARGBHalf:  return DXGI_FORMAT_R16G16B16A16_FLOAT;
+    case aiTextureFormat_RGHalf:    return DXGI_FORMAT_R16G16_FLOAT;
+    case aiTextureFormat_RHalf:     return DXGI_FORMAT_R16_FLOAT;
 
-    case aiE_ARGBFloat: return DXGI_FORMAT_R32G32B32A32_FLOAT;
-    case aiE_RGFloat:   return DXGI_FORMAT_R32G32_FLOAT;
-    case aiE_RFloat:    return DXGI_FORMAT_R32_FLOAT;
+    case aiTextureFormat_ARGBFloat: return DXGI_FORMAT_R32G32B32A32_FLOAT;
+    case aiTextureFormat_RGFloat:   return DXGI_FORMAT_R32G32_FLOAT;
+    case aiTextureFormat_RFloat:    return DXGI_FORMAT_R32_FLOAT;
 
-    case aiE_ARGBInt:   return DXGI_FORMAT_R32G32B32A32_SINT;
-    case aiE_RGInt:     return DXGI_FORMAT_R32G32_SINT;
-    case aiE_RInt:      return DXGI_FORMAT_R32_SINT;
+    case aiTextureFormat_ARGBInt:   return DXGI_FORMAT_R32G32B32A32_SINT;
+    case aiTextureFormat_RGInt:     return DXGI_FORMAT_R32G32_SINT;
+    case aiTextureFormat_RInt:      return DXGI_FORMAT_R32_SINT;
     }
     return DXGI_FORMAT_UNKNOWN;
 }
 
 
-ID3D11Texture2D* aiGraphicsDeviceD3D11::findOrCreateStagingTexture(int width, int height, aiETextureFormat format)
+ID3D11Texture2D* aiGraphicsDeviceD3D11::findOrCreateStagingTexture(int width, int height, aiTextureFormat format)
 {
     if (m_stagingTextures.size() >= aiD3D11MaxStagingTextures) {
         clearStagingTextures();
@@ -103,7 +106,7 @@ ID3D11Texture2D* aiGraphicsDeviceD3D11::findOrCreateStagingTexture(int width, in
     }
 
     D3D11_TEXTURE2D_DESC desc = {
-        width, height, 1, 1, internalFormat, { 1, 0 },
+        (UINT)width, (UINT)height, 1, 1, internalFormat, { 1, 0 },
         D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE, 0
     };
     ID3D11Texture2D *ret = nullptr;
@@ -124,8 +127,13 @@ void aiGraphicsDeviceD3D11::clearStagingTextures()
     m_stagingTextures.clear();
 }
 
-bool aiGraphicsDeviceD3D11::readTexture(void *outBuf, size_t bufsize, void *tex_, int width, int height, aiETextureFormat format)
+bool aiGraphicsDeviceD3D11::readTexture(void *outBuf, size_t bufsize, void *tex_, int width, int height, aiTextureFormat format)
 {
+    if (tex_ == nullptr) {
+        DebugLog("aiGraphicsDeviceD3D11::readTexture(): texture is null");
+        return false;
+    }
+
     if (m_context == nullptr || tex_ == nullptr) { return false; }
     int psize = aiGetPixelSize(format);
 
@@ -173,8 +181,13 @@ bool aiGraphicsDeviceD3D11::readTexture(void *outBuf, size_t bufsize, void *tex_
     return false;
 }
 
-bool aiGraphicsDeviceD3D11::writeTexture(void *outTex, int width, int height, aiETextureFormat format, const void *buf, size_t bufsize)
+bool aiGraphicsDeviceD3D11::writeTexture(void *outTex, int width, int height, aiTextureFormat format, const void *buf, size_t bufsize)
 {
+    if (outTex == nullptr) {
+        DebugLog("aiGraphicsDeviceD3D11::writeTexture(): texture is null");
+        return false;
+    }
+
     int psize = aiGetPixelSize(format);
     int pitch = psize * width;
     const size_t numPixels = bufsize / psize;

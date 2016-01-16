@@ -51,7 +51,7 @@ void aiPointsSample::getData(aiPointsSampleData &data)
     
     int count = (int) m_positions->size();
     
-    //data.count = count;
+    data.count = count;
     data.boundsCenter = m_bounds.center();
     data.boundsCenter.x *= scl;
     data.boundsExtents = m_bounds.size();
@@ -124,7 +124,7 @@ void aiPointsSample::getRawData(aiPointsSampleData &data)
         return;
     }
     
-    //data.count = (int) m_positions->size();
+    data.count = (int) m_positions->size();
     data.positions = (abcV3*) m_positions->get();
     data.boundsCenter = m_bounds.center();
     data.boundsExtents = m_bounds.size();

@@ -9,6 +9,7 @@
 #include <functional>
 #include <limits>
 #include <sstream>
+#include <type_traits>
 #include <Alembic/AbcCoreAbstract/All.h>
 #include <Alembic/AbcCoreHDF5/All.h>
 #include <Alembic/AbcCoreOgawa/All.h>
@@ -16,24 +17,13 @@
 #include <Alembic/AbcGeom/All.h>
 #include <Alembic/AbcMaterial/All.h>
 
-#ifdef _WIN32
-#define aiWindows
-#endif // _WIN32
-
-#define aiCLinkage extern "C"
-#ifdef _MSC_VER
-#define aiExport __declspec(dllexport)
-#else
-#define aiExport __attribute__((visibility("default")))
-#endif
-
 #if defined(aiDebug) || defined(aiDebugLog)
-#define DebugLog(...) aiLogger::Debug(__VA_ARGS__)
+    #define DebugLog(...) aiLogger::Debug(__VA_ARGS__)
 #else
-#define DebugLog(...)
+    #define DebugLog(...)
 #endif
 
-#ifdef aiWindows
+#ifdef _WIN32
 #include <windows.h>
 
 #ifndef aiNoAutoLink
@@ -62,37 +52,18 @@
 #include <d3d9.h>
 #endif // aiSupportD3D9
 
-#endif // aiWindows
+#endif // _WIN32
 
 using namespace Alembic;
 
 #define aiPI 3.14159265f
 
-typedef Imath::V2f     abcV2;
-typedef Imath::V3f     abcV3;
-typedef Imath::V4f     abcV4;
-typedef Imath::M44f    abcM44;
-typedef Abc::IObject   abcObject;
-
-struct  aiConfig;
-struct  aiCameraData;
-struct  aiXFormData;
-struct  aiMeshSummary;
-struct  aiMeshSampleSummary;
-struct  aiMeshSampleData;
-struct  aiSubmeshSummary;
-struct  aiSubmeshData;
-struct  aiFacesets;
-
-class   aiContext;
-class   aiObject;
-class   aiSchemaBase;
-class   aiSampleBase;
-class   aiXForm;
-class   aiXFormSample;
-class   aiPolyMesh;
-class   aiPolyMeshSample;
-class   aiCamera;
-class   aiCameraSample;
-class   aiPoints;
-class   aiPointsSample;
+typedef Imath::V2f      abcV2;
+typedef Imath::V3f      abcV3;
+typedef Imath::V4f      abcV4;
+typedef Imath::M44f     abcM44;
+typedef Imath::M44d     abcM44d;
+typedef Imath::Box3f    abcBox;
+typedef Imath::Box3d    abcBoxd;
+typedef Abc::chrono_t   abcChrono;
+typedef Abc::IObject    abcObject;
