@@ -12,7 +12,7 @@ using UnityEditor;
 [ExecuteInEditMode]
 public class AlembicPoints : AlembicElement
 {
-    AbcAPI.aiMeshSampleSummary m_summary;
+    AbcAPI.aiPointsSampleSummary m_summary;
     AbcAPI.aiPointsSampleData m_abcData;
     Vector3[] m_abcPositions;
     Int64[] m_abcIDs;
@@ -66,7 +66,7 @@ public class AlembicPoints : AlembicElement
             }
             else
             {
-                if (m_abcVelocities)
+                if (m_abcVelocities != null)
                 {
                     Array.Resize(ref m_abcVelocities, 0);
                 }
@@ -87,7 +87,7 @@ public class AlembicPoints : AlembicElement
             }
             else
             {
-                if (m_abcIDs)
+                if (m_abcIDs != null)
                 {
                     Array.Resize(ref m_abcIDs, 0);
                 }
