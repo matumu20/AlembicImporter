@@ -67,3 +67,19 @@ typedef Imath::Box3f    abcBox;
 typedef Imath::Box3d    abcBoxd;
 typedef Abc::chrono_t   abcChrono;
 typedef Abc::IObject    abcObject;
+
+enum aiTextureFormat
+{
+    aiTextureFormat_Unknown,
+    aiTextureFormat_ARGB32,
+    aiTextureFormat_ARGB2101010,
+    aiTextureFormat_RHalf,
+    aiTextureFormat_RGHalf,
+    aiTextureFormat_ARGBHalf,
+    aiTextureFormat_RFloat,
+    aiTextureFormat_RGFloat,
+    aiTextureFormat_ARGBFloat,
+    aiTextureFormat_RInt,
+    aiTextureFormat_RGInt,
+    aiTextureFormat_ARGBInt,
+};

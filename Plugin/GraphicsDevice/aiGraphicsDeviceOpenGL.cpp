@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #if defined(aiSupportTextureData) && defined(aiSupportOpenGL)
 #include "AlembicImporter.h"
 #include "aiGraphicsDevice.h"

@@ -1,5 +1,3 @@
-﻿#include "pch.h"
-
 #if defined(aiSupportTextureData)
 
 // Graphics device identifiers in Unity
@@ -20,29 +18,14 @@ enum GfxDeviceRenderer
 };
 
 // Event types for UnitySetGraphicsDevice
-enum GfxDeviceEventType {
+enum GfxDeviceEventType
+{
     kGfxDeviceEventInitialize = 0,
     kGfxDeviceEventShutdown,
     kGfxDeviceEventBeforeReset,
     kGfxDeviceEventAfterReset,
 };
 
-
-enum aiTextureFormat
-{
-    aiTextureFormat_Unknown,
-    aiTextureFormat_ARGB32,
-    aiTextureFormat_ARGB2101010,
-    aiTextureFormat_RHalf,
-    aiTextureFormat_RGHalf,
-    aiTextureFormat_ARGBHalf,
-    aiTextureFormat_RFloat,
-    aiTextureFormat_RGFloat,
-    aiTextureFormat_ARGBFloat,
-    aiTextureFormat_RInt,
-    aiTextureFormat_RGInt,
-    aiTextureFormat_ARGBInt,
-};
 
 class aiIGraphicsDevice
 {

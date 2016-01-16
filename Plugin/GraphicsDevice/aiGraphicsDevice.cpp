@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #if defined(aiSupportTextureData)
 #include "AlembicImporter.h"
 #include "aiGraphicsDevice.h"
@@ -22,13 +20,18 @@ int aiGetPixelSize(aiTextureFormat format)
     case aiTextureFormat_ARGBInt:   return 16;
     case aiTextureFormat_RGInt:     return 8;
     case aiTextureFormat_RInt:      return 4;
+    default: break;
     }
     return 0;
 }
 
 
 namespace {
+#ifdef __APPLE__
+    __thread std::vector<char> *g_conversion_buffer;
+#else
     thread_local std::vector<char> *g_conversion_buffer;
+#endif
 }
 
 void* aiGetConversionBuffer(size_t size)

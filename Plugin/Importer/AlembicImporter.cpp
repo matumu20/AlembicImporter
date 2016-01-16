@@ -1,4 +1,3 @@
-﻿#include "pch.h"
 #include "AlembicImporter.h"
 #include "aiLogger.h"
 #include "aiContext.h"

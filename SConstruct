@@ -6,6 +6,7 @@ import excons
 from excons.tools import unity
 from excons.tools import tbb
 from excons.tools import dl
+from excons.tools import gl
 from excons.tools import glew
 
 use_externals = (sys.platform == "win32" and excons.Build64() and excons.GetArgument("use-externals", 1, int) != 0)
@@ -26,7 +27,10 @@ embed_libs = []
 customs = []
 install_files = {"unity/AlembicImporter/Scripts": glob.glob("AlembicImporter/Assets/AlembicImporter/Scripts/*.cs*"),
                  "unity/AlembicImporter/Editor": glob.glob("AlembicImporter/Assets/AlembicImporter/Editor/*.cs*"),
-                 "unity/AlembicImporter/Shaders": glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/DataViz.shader*")}
+                 "unity/AlembicImporter/Materials": glob.glob("AlembicImporter/Assets/AlembicImporter/Materials/AlembicPoints*"),
+                 "unity/AlembicImporter/Textures": glob.glob("AlembicImporter/Assets/AlembicImporter/Textures/RandomVectors*"),
+                 "unity/AlembicImporter/Shaders": glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/DataViz.shader*") +
+                                                  glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/*Instancing*")}
 sources = glob.glob("Plugin/Foundation/*.cpp") + glob.glob("Plugin/Importer/*.cpp")
 
 if excons.GetArgument("debug", 0, int) != 0:
@@ -35,18 +39,18 @@ if excons.GetArgument("debug", 0, int) != 0:
 if excons.GetArgument("debug-log", 0, int) != 0:
   defines.append("aiDebugLog")
 
-if excons.GetArgument("texture-data", 0, int) != 0:
+# off, this should disable points support
+if excons.GetArgument("texture-data", 1, int) != 0:
   defines.append("aiSupportTextureData")
   sources.extend(["Plugin/GraphicsDevice/aiGraphicsDevice.cpp"])
-  install_files["unity/AlembicImporter/Meshes"] = glob.glob("AlembicImporter/Assets/AlembicImporter/Meshes/IndexOnlyMesh.asset*")
-  install_files["unity/AlembicImporter/Materials"] = glob.glob("AlembicImporter/Assets/AlembicImporter/Materials/AlembicStandard.mat*")
+  install_files["unity/AlembicImporter/Meshes"] = glob.glob("AlembicImporter/Assets/AlembicImporter/Meshes/*.asset*")
   install_files["unity/AlembicImporter/Shaders"].extend(glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/AICommon.cginc*") +
                                                         glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/AIStandard.shader*"))
   
   if excons.GetArgument("opengl", 1, int) != 0:
     defines.extend(["aiSupportOpenGL", "aiDontForceStaticGLEW"])
     sources.append("Plugin/GraphicsDevice/aiGraphicsDeviceOpenGL.cpp")
-    customs.append(glew.Require)
+    customs.extend([glew.Require, gl.Require])
 
   if sys.platform == "win32":
     if excons.GetArgument("d3d9", 1, int) != 0:
