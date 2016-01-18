@@ -199,6 +199,10 @@ public class AlembicStream : MonoBehaviour
         {
             elements.Add(mesh);
         }
+        foreach (AlembicPoints mesh in gameObject.GetComponentsInChildren<AlembicPoints>(true))
+        {
+            elements.Add(mesh);
+        }
         foreach (AlembicXForm xform in gameObject.GetComponentsInChildren<AlembicXForm>(true))
         {
             elements.Add(xform);
@@ -222,13 +226,17 @@ public class AlembicStream : MonoBehaviour
         AlembicElement elem = tr.gameObject.GetComponent<AlembicMesh>() as AlembicElement;
         if (elem == null)
         {
-            elem = tr.gameObject.GetComponent<AlembicXForm>() as AlembicElement;
+            elem = tr.gameObject.GetComponent<AlembicPoints>() as AlembicElement;
             if (elem == null)
             {
-                elem = tr.gameObject.GetComponent<AlembicCamera>() as AlembicElement;
+                elem = tr.gameObject.GetComponent<AlembicXForm>() as AlembicElement;
                 if (elem == null)
                 {
-                    elem = tr.gameObject.GetComponent<AlembicLight>() as AlembicElement;
+                    elem = tr.gameObject.GetComponent<AlembicCamera>() as AlembicElement;
+                    if (elem == null)
+                    {
+                        elem = tr.gameObject.GetComponent<AlembicLight>() as AlembicElement;
+                    }
                 }
             }
         }
