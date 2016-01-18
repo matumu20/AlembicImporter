@@ -25,26 +25,32 @@ int aiGetPixelSize(aiTextureFormat format)
     return 0;
 }
 
-
+// Note 1: thread_local doesn't work on OSX
+//                      only works starting Visual Studio 2015
+//         => use compiler specific directives instead
+// 
+// Note 2: The g_conversionBuffer is actually never deallocated!
+//         => don't use that until it is properly implemented (using TLS)
+/*
 namespace {
-#ifdef __APPLE__
-    __thread std::vector<char> *g_conversion_buffer;
+    // thread_local std::vector<char> *g_conversionBuffer;
+#ifndef _WIN32
+    __thread std::vector<char> *g_conversionBuffer;
 #else
-    thread_local std::vector<char> *g_conversion_buffer;
+    __declspec(thread) std::vector<char> *g_conversionBuffer;
 #endif
 }
 
 void* aiGetConversionBuffer(size_t size)
 {
-    if (g_conversion_buffer == nullptr)
+    if (g_conversionBuffer == nullptr)
     {
-        g_conversion_buffer = new std::vector<char>();
+        g_conversionBuffer = new std::vector<char>();
     }
-    g_conversion_buffer->resize(size);
-    return &(*g_conversion_buffer)[0];
+    g_conversionBuffer->resize(size);
+    return &(*g_conversionBuffer)[0];
 }
-
-
+*/
 
 aiIGraphicsDevice* aiCreateGraphicsDeviceOpenGL(void *device);
 aiIGraphicsDevice* aiCreateGraphicsDeviceD3D9(void *device);

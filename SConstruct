@@ -53,7 +53,7 @@ if excons.GetArgument("texture-data", 1, int) != 0:
     customs.extend([glew.Require, gl.Require])
 
   if sys.platform == "win32":
-    if excons.GetArgument("d3d9", 1, int) != 0:
+    if excons.GetArgument("d3d9", 0, int) != 0:
       defines.append("aiSupportD3D9")
       sources.append("Plugin/GraphicsDevice/aiGraphicsDeviceD3D9.cpp")
 

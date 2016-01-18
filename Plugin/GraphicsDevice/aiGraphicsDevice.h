@@ -38,7 +38,7 @@ public:
 };
 aiCLinkage aiExport aiIGraphicsDevice* aiGetGraphicsDevice();
 int aiGetPixelSize(aiTextureFormat format);
-void* aiGetConversionBuffer(size_t size); // return thread-local buffer
+//void* aiGetConversionBuffer(size_t size); // return thread-local buffer
 
 // T: input data type
 // F: convert function
@@ -51,14 +51,26 @@ template<class T, class F>
 inline bool aiWriteTextureWithConversion(void *o_tex, int width, int height, aiTextureFormat format, const T *data, size_t num_elements, const F& converter)
 {
     auto dev = aiGetGraphicsDevice();
-    if (dev == nullptr) { return false; }
+    if (dev == nullptr)
+    {
+        return false;
+    }
 
     size_t bufsize = width * height * aiGetPixelSize(format);
-    void *buf = aiGetConversionBuffer(bufsize);
+    
+    //void *buf = aiGetConversionBuffer(bufsize);
+    // Until aiGetConversionBuffer properly handles thread local storage allocation/deallocation
+    void *buf = malloc(bufsize);
+    
     for (size_t i = 0; i < num_elements; ++i) {
         converter(buf, data, i);
     }
-    return dev->writeTexture(o_tex, width, height, format, buf, bufsize);
+    
+    bool success = dev->writeTexture(o_tex, width, height, format, buf, bufsize);
+    
+    free(buf);
+    
+    return success;
 }
 
 #endif
