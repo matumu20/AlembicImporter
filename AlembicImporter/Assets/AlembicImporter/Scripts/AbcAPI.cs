@@ -557,4 +557,19 @@ public class AbcUtils
     {
         return v / d + (v % d == 0 ? 0 : 1);
     }
+    
+    public static Vector3 V3Mul(Vector3 a, Vector3 b)
+    {
+        return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
+    }
+    
+    static RenderTexture CreateDataTexture(int w, int h, RenderTextureFormat f)
+    {
+        RenderTexture r = new RenderTexture(w, h, 0, f);
+        r.filterMode = FilterMode.Point;
+        r.useMipMap = false;
+        r.generateMips = false;
+        r.Create();
+        return r;
+    }
 }

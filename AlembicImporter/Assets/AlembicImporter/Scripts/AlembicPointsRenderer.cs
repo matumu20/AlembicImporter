@@ -40,27 +40,7 @@ public class AlembicPointsRenderer : MonoBehaviour
 
     public const int MaxVertices = 65000; // Mesh's limitation
 
-    public static int ceildiv(int v, int d)
-    {
-        return v / d + (v % d == 0 ? 0 : 1);
-    }
-
-    public static Vector3 mul(Vector3 a, Vector3 b)
-    {
-        return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
-    }
-
-    static RenderTexture CreateDataTexture(int w, int h, RenderTextureFormat f)
-    {
-        RenderTexture r = new RenderTexture(w, h, 0, f);
-        r.filterMode = FilterMode.Point;
-        r.useMipMap = false;
-        r.generateMips = false;
-        r.Create();
-        return r;
-    }
-
-    public static Mesh CreateExpandedMesh(Mesh mesh, int required_instances, out int instancesPerBatch)
+    public static Mesh CreateExpandedMesh(Mesh mesh, int requiredInstances, out int instancesPerBatch)
     {
         Vector3[] verticesBase = mesh.vertices;
         Vector3[] normalsBase = (mesh.normals == null || mesh.normals.Length == 0) ? null : mesh.normals;
@@ -68,7 +48,7 @@ public class AlembicPointsRenderer : MonoBehaviour
         Vector2[] uvBase = (mesh.uv == null || mesh.uv.Length == 0) ? null : mesh.uv;
         Color[] colorsBase = (mesh.colors == null || mesh.colors.Length == 0) ? null : mesh.colors;
         int[] indicesBase = (mesh.triangles == null || mesh.triangles.Length == 0) ? null : mesh.triangles;
-        instancesPerBatch = Mathf.Min(MaxVertices / mesh.vertexCount, required_instances);
+        instancesPerBatch = Mathf.Min(MaxVertices / mesh.vertexCount, requiredInstances);
 
         Vector3[] vertices = new Vector3[verticesBase.Length * instancesPerBatch];
         Vector2[] idata = new Vector2[verticesBase.Length * instancesPerBatch];
@@ -191,8 +171,9 @@ public class AlembicPointsRenderer : MonoBehaviour
         var abcData = points.abcData;
         int maxInstances = points.abcPeakVertexCount;
         int instanceCount = abcData.count;
-        m_bounds.center = mul(abcData.boundsCenter, m_transScale);
-        m_bounds.extents = mul(abcData.boundsExtents, m_transScale);
+        
+        m_bounds.center = AbcUtils.V3Mul(abcData.boundsCenter, m_transScale);
+        m_bounds.extents = AbcUtils.V3Mul(abcData.boundsExtents, m_transScale);
 
         if (instanceCount == 0)
         {
@@ -203,9 +184,9 @@ public class AlembicPointsRenderer : MonoBehaviour
         // update data texture
         if (m_texPositions == null)
         {
-            int height = ceildiv(maxInstances, TextureWidth);
-            m_texPositions = CreateDataTexture(TextureWidth, height, RenderTextureFormat.ARGBFloat);
-            m_texIDs = CreateDataTexture(TextureWidth, height, RenderTextureFormat.RFloat);
+            int height = AbcUtils.CeilDiv(maxInstances, TextureWidth);
+            m_texPositions = AbcUtils.CreateDataTexture(TextureWidth, height, RenderTextureFormat.ARGBFloat);
+            m_texIDs = AbcUtils.CreateDataTexture(TextureWidth, height, RenderTextureFormat.RFloat);
         }
 
         AbcAPI.aiPointsCopyPositionsToTexture(ref abcData, m_texPositions.GetNativeTexturePtr(), m_texPositions.width, m_texPositions.height, AbcAPI.GetTextureFormat(m_texPositions));
@@ -231,13 +212,13 @@ public class AlembicPointsRenderer : MonoBehaviour
         m_expandedMesh.bounds = m_bounds;
         m_countRate = Mathf.Max(m_countRate, 0.0f);
         instanceCount = Mathf.Min((int)(instanceCount * m_countRate), (int)(maxInstances * m_countRate));
-        int batch_count = ceildiv(instanceCount, m_instancesPerBatch);
+        int batchCount = AbcUtils.CeilDiv(instanceCount, m_instancesPerBatch);
 
         // clone materials if needed
         for (int i = 0; i < m_actualMaterials.Count; ++i)
         {
             var a = m_actualMaterials[i];
-            while (a.Count < batch_count)
+            while (a.Count < batchCount)
             {
                 Material m = CloneMaterial(m_materials[i], a.Count);
                 a.Add(m);
@@ -260,7 +241,7 @@ public class AlembicPointsRenderer : MonoBehaviour
         Matrix4x4 matrix = Matrix4x4.identity;
         m_actualMaterials.ForEach(a =>
         {
-            for (int i = 0; i < batch_count; ++i)
+            for (int i = 0; i < batchCount; ++i)
             {
                 Graphics.DrawMesh(m_expandedMesh, matrix, a[i], layer, null, 0, null, m_castShadow, m_receiveShadows);
             }
