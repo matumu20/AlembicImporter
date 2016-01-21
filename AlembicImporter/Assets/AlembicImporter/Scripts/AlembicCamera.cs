@@ -18,6 +18,9 @@ public class AlembicCamera : AlembicElement
     Camera m_camera;
     AbcAPI.aiCameraData m_abcData;
     bool m_lastIgnoreClippingPlanes = false;
+#if UNITY_EDITOR
+    AbcAPI.aiAspectRatioModeOverride m_lastAspectRatioMode = AbcAPI.aiAspectRatioModeOverride.InheritStreamSetting;
+#endif
     
     static Vector3 RotY180 = new Vector3(0, 180, 0);
 
@@ -57,7 +60,20 @@ public class AlembicCamera : AlembicElement
 
     public override void AbcUpdate()
     {
-        if (AbcIsValid() && (AbcIsDirty() || m_lastIgnoreClippingPlanes != m_ignoreClippingPlanes))
+        if (AbcIsValid())
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying && m_aspectRatioMode != m_lastAspectRatioMode)
+            {
+                m_abcStream.m_forceRefresh = true;
+                
+                EditorUtility.SetDirty(m_abcStream.gameObject);
+                
+                m_lastAspectRatioMode = m_aspectRatioMode;
+            }
+#endif
+
+            if (AbcIsDirty() || m_lastIgnoreClippingPlanes != m_ignoreClippingPlanes)
         {
                 // m_trans.forward = -m_trans.parent.forward;
                 // => This seems to be doing some weirdness
@@ -82,4 +98,5 @@ public class AlembicCamera : AlembicElement
             m_lastIgnoreClippingPlanes = m_ignoreClippingPlanes;
         }
     }
+}
 }
