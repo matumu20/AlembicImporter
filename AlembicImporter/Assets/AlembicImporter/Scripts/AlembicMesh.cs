@@ -5,6 +5,9 @@ using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [ExecuteInEditMode]
 public class AlembicMesh : AlembicElement
@@ -48,6 +51,11 @@ public class AlembicMesh : AlembicElement
     AbcAPI.aiMeshSummary m_summary;
     AbcAPI.aiMeshSampleSummary m_sampleSummary;
     bool m_freshSetup = false;
+#if UNITY_EDITOR
+    AbcAPI.aiFaceWindingOverride m_lastFaceWinding = AbcAPI.aiFaceWindingOverride.InheritStreamSetting;
+    AbcAPI.aiNormalsModeOverride m_lastNormalsMode = AbcAPI.aiNormalsModeOverride.InheritStreamSetting;
+    AbcAPI.aiTangentsModeOverride m_lastTangentsMode = AbcAPI.aiTangentsModeOverride.InheritStreamSetting;
+#endif
 
     void UpdateSplits(int numSplits)
     {
@@ -339,7 +347,27 @@ public class AlembicMesh : AlembicElement
 
     public override void AbcUpdate()
     {
-        if (!AbcIsValid() || !AbcIsDirty())
+        if (!AbcIsValid())
+        {
+            return;
+        }
+        
+#if UNITY_EDITOR
+        if (!Application.isPlaying && (m_tangentsMode != m_lastTangentsMode ||
+                                       m_normalsMode != m_lastNormalsMode ||
+                                       m_faceWinding != m_lastFaceWinding))
+        {
+            m_abcStream.m_forceRefresh = true;
+            
+            EditorUtility.SetDirty(m_abcStream.gameObject);
+            
+            m_lastTangentsMode = m_tangentsMode;
+            m_lastNormalsMode = m_normalsMode;
+            m_lastFaceWinding = m_faceWinding;
+        }
+#endif
+        
+        if (!AbcIsDirty())
         {
             return;
         }

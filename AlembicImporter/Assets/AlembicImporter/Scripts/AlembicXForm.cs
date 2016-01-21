@@ -13,9 +13,27 @@ using UnityEditor;
 public class AlembicXForm : AlembicElement
 {
     AbcAPI.aiXFormData m_abcData;
+    bool m_freshSetup = false;
 
-    // No config overrides on AlembicXForm
+    public override void AbcSetup(AlembicStream abcStream,
+                                  AbcAPI.aiObject abcObj,
+                                  AbcAPI.aiSchema abcSchema)
+    {
+        base.AbcSetup(abcStream, abcObj, abcSchema);
+        
+        m_freshSetup = true;
+    }
 
+    public override void AbcGetConfig(ref AbcAPI.aiConfig config)
+    {
+        if (!AbcIsValid())
+        {
+            return;
+        }
+        
+        config.forceUpdate = m_freshSetup;
+    }
+    
     public override void AbcSampleUpdated(AbcAPI.aiSample sample, bool topologyChanged)
     {
         if (!AbcIsValid())
@@ -24,6 +42,8 @@ public class AlembicXForm : AlembicElement
         }
         
         AbcAPI.aiXFormGetData(sample, ref m_abcData);
+        
+        m_freshSetup = false;
         
         AbcDirty();
     }
