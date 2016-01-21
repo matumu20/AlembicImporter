@@ -18,6 +18,7 @@ public class AlembicCamera : AlembicElement
     Camera m_camera;
     AbcAPI.aiCameraData m_abcData;
     bool m_lastIgnoreClippingPlanes = false;
+    bool m_freshSetup = false;
 #if UNITY_EDITOR
     AbcAPI.aiAspectRatioModeOverride m_lastAspectRatioMode = AbcAPI.aiAspectRatioModeOverride.InheritStreamSetting;
 #endif
@@ -31,6 +32,8 @@ public class AlembicCamera : AlembicElement
         base.AbcSetup(abcStream, abcObj, abcSchema);
 
         m_camera = GetOrAddComponent<Camera>();
+        
+        m_freshSetup = true;
     }
 
     public override void AbcGetConfig(ref AbcAPI.aiConfig config)
@@ -44,6 +47,8 @@ public class AlembicCamera : AlembicElement
         {
             config.aspectRatio = AbcAPI.GetAspectRatio((AbcAPI.aiAspectRatioMode) m_aspectRatioMode);
         }
+        
+        config.forceUpdate = m_freshSetup;
     }
 
     public override void AbcSampleUpdated(AbcAPI.aiSample sample, bool topologyChanged)
@@ -54,6 +59,8 @@ public class AlembicCamera : AlembicElement
         }
         
         AbcAPI.aiCameraGetData(sample, ref m_abcData);
+
+        m_freshSetup = false;
 
         AbcDirty();
     }
@@ -74,7 +81,7 @@ public class AlembicCamera : AlembicElement
 #endif
 
             if (AbcIsDirty() || m_lastIgnoreClippingPlanes != m_ignoreClippingPlanes)
-        {
+            {
                 // m_trans.forward = -m_trans.parent.forward;
                 // => This seems to be doing some weirdness
                 // 
@@ -83,20 +90,20 @@ public class AlembicCamera : AlembicElement
                 m_trans.localEulerAngles = RotY180;
                 m_trans.localScale = Vector3.one;
                 
-            m_camera.fieldOfView = m_abcData.fieldOfView;
+                m_camera.fieldOfView = m_abcData.fieldOfView;
 
-            if (!m_ignoreClippingPlanes)
-            {
-                m_camera.nearClipPlane = m_abcData.nearClippingPlane;
-                m_camera.farClipPlane = m_abcData.farClippingPlane;
+                if (!m_ignoreClippingPlanes)
+                {
+                    m_camera.nearClipPlane = m_abcData.nearClippingPlane;
+                    m_camera.farClipPlane = m_abcData.farClippingPlane;
+                }
+                
+                // no use for focusDistance and focalLength yet (could be usefull for DoF component)
+                
+                AbcClean();
+
+                m_lastIgnoreClippingPlanes = m_ignoreClippingPlanes;
             }
-            
-            // no use for focusDistance and focalLength yet (could be usefull for DoF component)
-            
-            AbcClean();
-
-            m_lastIgnoreClippingPlanes = m_ignoreClippingPlanes;
         }
     }
-}
 }
