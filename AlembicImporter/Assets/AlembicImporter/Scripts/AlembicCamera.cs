@@ -18,6 +18,8 @@ public class AlembicCamera : AlembicElement
     Camera m_camera;
     AbcAPI.aiCameraData m_abcData;
     bool m_lastIgnoreClippingPlanes = false;
+    
+    static Vector3 RotY180 = new Vector3(0, 180, 0);
 
     public override void AbcSetup(AlembicStream abcStream,
                                   AbcAPI.aiObject abcObj,
@@ -57,7 +59,14 @@ public class AlembicCamera : AlembicElement
     {
         if (AbcIsValid() && (AbcIsDirty() || m_lastIgnoreClippingPlanes != m_ignoreClippingPlanes))
         {
-            m_trans.forward = -m_trans.parent.forward;
+                // m_trans.forward = -m_trans.parent.forward;
+                // => This seems to be doing some weirdness
+                // 
+                // => rather assume identity on transform of nodes with AlembicCamera component
+                m_trans.localPosition = Vector3.zero;
+                m_trans.localEulerAngles = RotY180;
+                m_trans.localScale = Vector3.one;
+                
             m_camera.fieldOfView = m_abcData.fieldOfView;
 
             if (!m_ignoreClippingPlanes)
