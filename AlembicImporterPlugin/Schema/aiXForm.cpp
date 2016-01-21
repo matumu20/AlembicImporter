@@ -27,25 +27,29 @@ void aiXFormSample::getData(aiXFormData &outData) const
 {
     DebugLog("aiXFormSample::getData()");
     
-    abcV3 trans = m_sample.getTranslation();
-    abcV3 axis = m_sample.getAxis();
-    float angle = m_sample.getAngle() * (aiPI / 180.0f);
-
+    Abc::M44f M(m_sample.getMatrix());
+    Imath::V3f S(1.0f, 1.0f, 1.0f);
+    Imath::V3f Sh(0.0f, 0.0f, 0.0f); // Shear (ignored)
+    
+    Imath::extractAndRemoveScalingAndShear(M, S, Sh, false);
+    
+    Imath::V3f T = M.translation();
+    Imath::Quatf Q = Imath::extractQuat(M);
+    Imath::V3f Raxis = Q.axis();
+    float Rangle = Q.angle();
+    
     if (m_config.swapHandedness)
     {
-        trans.x *= -1.0f;
-        axis.x *= -1.0f;
-        angle *= -1.0f;
+        T.x *= -1.0f;
+        Rangle *= -1.0f;
+        Raxis.x *= -1.0f;
+        Q.setAxisAngle(Raxis, Rangle);
     }
-
+    
     outData.inherits = m_sample.getInheritsXforms();
-    outData.translation = trans;
-    outData.scale = abcV3(m_sample.getScale());
-    outData.rotation = abcV4(axis.x * std::sin(angle * 0.5f),
-                             axis.y * std::sin(angle * 0.5f),
-                             axis.z * std::sin(angle * 0.5f),
-                             std::cos(angle * 0.5f) );
-
+    outData.translation = T;
+    outData.rotation = abcV4(Q.v.x, Q.v.y, Q.v.z, Q.r);
+    outData.scale = S;
 }
 
 
