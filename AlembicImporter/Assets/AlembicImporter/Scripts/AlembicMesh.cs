@@ -168,7 +168,7 @@ public class AlembicMesh : AlembicElement
     
     public int GetSubMeshCount()
     {
-        return (m_sourceMesh != null ? m_sourceMesh.GetSubMeshCount() m_submeshes.Count);
+        return (m_sourceMesh != null ? m_sourceMesh.GetSubMeshCount() : m_submeshes.Count);
     }
     
     public List<Submesh> GetSubMeshes()
