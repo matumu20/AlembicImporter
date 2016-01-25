@@ -201,108 +201,9 @@ public class AlembicMaterial : MonoBehaviour
 
 #if UNITY_EDITOR
 
-    static char[] PathSep = new char[1] { '/' };
     static char[] FaceSep = new char[1] { ',' };
     static char[] RangeSep = new char[1] { '-' };
-
-    static GameObject SearchNodeInstance(Transform parent, string name, int instNum, ref int curInst)
-    {
-        Transform node = parent.FindChild (name);
-
-        if (node != null)
-        {
-            if (curInst == instNum)
-            {
-                return node.gameObject;
-            }
-            else
-            {
-                ++curInst;
-            }
-        }
-
-        for (int i = 0; i < parent.childCount; ++i)
-        {
-            GameObject rv = SearchNodeInstance(parent.GetChild(i), name, instNum, ref curInst);
-
-            if (rv != null)
-            {
-                return rv;
-            }
-        }
-
-        return null;
-    }
-  
-    static GameObject FindNode(GameObject root, string path, int instNum)
-    {
-        if (root == null)
-        {
-            return null;
-        }
-
-        string[] paths = path.Split(PathSep, StringSplitOptions.RemoveEmptyEntries);
-
-        if (paths.Length == 0)
-        {
-            return null;
-        }
-
-        bool isFullPath = path.StartsWith("/");
-
-        if (isFullPath)
-        {
-            int curPath = 0;
-
-            Transform curNode = root.transform;
-
-            while (curNode != null && curPath < paths.Length)
-            {
-                Transform child = curNode.FindChild(paths[curPath]);
-
-                if (child == null)
-                {
-                    Debug.Log("Object \"" + curNode.name + "\" has no child named \"" + paths[curPath] + "\"");
-                    curNode = null;
-                    break;
-                }
-                else
-                {
-                    curNode = child;
-                    ++curPath;
-                }
-            }
-
-            if (curNode == null)
-            {
-                Debug.Log("Failed to find object \"" + path + "\"");
-                return null;
-            }
-            else
-            {
-                return curNode.gameObject;
-            }
-        }
-        else
-        {
-            string name = path;
-            int curInst = 0;
-
-            int idx = name.LastIndexOf("/");
-            if (idx >= 0 && idx < path.Length)
-            {
-                name = name.Substring(idx + 1);
-            }
-
-            if (instNum < 0)
-            {
-                instNum = 0;
-            }
-
-            return SearchNodeInstance(root.transform, name, instNum, ref curInst);
-        }
-    }
-  
+    
     static Material GetMaterial(string name, string matfolder)
     {
         // FindAssets will return all shaders that contains name in a case insensitive way
@@ -352,7 +253,7 @@ public class AlembicMaterial : MonoBehaviour
 
                 int instNum = (inst == null ? 0 : Convert.ToInt32(inst.Value));
 
-                GameObject target = FindNode(root, path, instNum);
+                GameObject target = AbcUtils.FindNode(root, path, instNum);
                 
                 if (target == null)
                 {

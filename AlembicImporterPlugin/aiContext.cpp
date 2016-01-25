@@ -501,6 +501,12 @@ aiObject* aiContext::getTopObject()
     return m_nodes.empty() ? nullptr : m_nodes.front();
 }
 
+aiObject* aiContext::findObject(const char *path)
+{
+    aiObject *top = getTopObject();
+    return (top ? top->find(path) : 0);
+}
+
 void aiContext::updateSamples(float time)
 {
     if (m_config.useThreads)

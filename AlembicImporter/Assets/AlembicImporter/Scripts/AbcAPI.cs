@@ -200,12 +200,15 @@ public class AbcAPI
     [DllImport ("AlembicImporter")] public static extern float      aiGetStartTime(aiContext ctx);
     [DllImport ("AlembicImporter")] public static extern float      aiGetEndTime(aiContext ctx);
     [DllImport ("AlembicImporter")] public static extern aiObject   aiGetTopObject(aiContext ctx);
+    [DllImport ("AlembicImporter")] public static extern aiObject   aiFindObject(aiContext ctx, string path);
     [DllImport ("AlembicImporter")] public static extern void       aiDestroyObject(aiContext ctx, aiObject obj);
 
     [DllImport ("AlembicImporter")] public static extern void       aiUpdateSamples(aiContext ctx, float time);
     
     [DllImport ("AlembicImporter")] public static extern void       aiSetDestroyCallback(aiObject obj, aiDestroyCallback cb, IntPtr arg);
     [DllImport ("AlembicImporter")] public static extern void       aiEnumerateChild(aiObject obj, aiNodeEnumerator e, IntPtr userData);
+    [DllImport ("AlembicImporter")] public static extern bool       aiIsInstance(aiObject obj);
+    [DllImport ("AlembicImporter")] public static extern aiObject   aiGetInstanceSource(aiObject obj);
     [DllImport ("AlembicImporter")] private static extern IntPtr    aiGetNameS(aiObject obj);
     [DllImport ("AlembicImporter")] private static extern IntPtr    aiGetFullNameS(aiObject obj);
     public static string aiGetName(aiObject obj)      { return Marshal.PtrToStringAnsi(aiGetNameS(obj)); }
@@ -475,5 +478,150 @@ public class AbcUtils
     public static int CeilDiv(int v, int d)
     {
         return v / d + (v % d == 0 ? 0 : 1);
+    }
+    
+    private static char[] PathSep = new char[1] { '/' };
+    
+    private static GameObject SearchNodeInstance(Transform parent, string name, int instNum, ref int curInst)
+    {
+        Transform node = parent.FindChild(name);
+
+        if (node != null)
+        {
+            if (curInst == instNum)
+            {
+                return node.gameObject;
+            }
+            else
+            {
+                ++curInst;
+            }
+        }
+
+        for (int i = 0; i < parent.childCount; ++i)
+        {
+            GameObject rv = SearchNodeInstance(parent.GetChild(i), name, instNum, ref curInst);
+
+            if (rv != null)
+            {
+                return rv;
+            }
+        }
+
+        return null;
+    }
+  
+    public static GameObject FindNode(GameObject root, string path, int instNum=0)
+    {
+        if (root == null)
+        {
+            return null;
+        }
+
+        string[] paths = path.Split(PathSep, StringSplitOptions.RemoveEmptyEntries);
+
+        if (paths.Length == 0)
+        {
+            return null;
+        }
+
+        bool isFullPath = path.StartsWith("/");
+
+        if (isFullPath)
+        {
+            int curPath = 0;
+
+            Transform curNode = root.transform;
+
+            while (curNode != null && curPath < paths.Length)
+            {
+                Transform child = curNode.FindChild(paths[curPath]);
+
+                if (child == null)
+                {
+                    Debug.Log("Object \"" + curNode.name + "\" has no child named \"" + paths[curPath] + "\"");
+                    curNode = null;
+                    break;
+                }
+                else
+                {
+                    curNode = child;
+                    ++curPath;
+                }
+            }
+
+            if (curNode == null)
+            {
+                Debug.Log("Failed to find object \"" + path + "\"");
+                return null;
+            }
+            else
+            {
+                return curNode.gameObject;
+            }
+        }
+        else
+        {
+            string name = path;
+            int curInst = 0;
+
+            int idx = name.LastIndexOf("/");
+            if (idx >= 0 && idx < path.Length)
+            {
+                name = name.Substring(idx + 1);
+            }
+
+            if (instNum < 0)
+            {
+                instNum = 0;
+            }
+
+            return SearchNodeInstance(root.transform, name, instNum, ref curInst);
+        }
+    }
+    
+    public bool CopyComponent(Component src, Component dst)
+    {
+        System.Type type = src.GetType();
+
+        if (dst.GetType() != type)
+        {
+            return false;
+        }
+
+        BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
+
+        PropertyInfo[] properties = type.GetProperties(flags);
+
+        foreach (PropertyInfo property in properties)
+        {
+            if (!property.CanWrite)
+            {
+                continue;
+            }
+
+            try
+            {
+                property.SetValue(dst, property.GetValue(src, null), null);
+            }
+            catch
+            {
+            }
+        }
+
+        FieldInfo[] fields = type.GetFields(flags);
+
+        foreach (FieldInfo field in fields)
+        {
+            try
+            {
+                field.SetValue(dst, field.GetValue(src));
+            }
+            catch
+            {
+            }
+        }
+
+        return true;
     }
 }

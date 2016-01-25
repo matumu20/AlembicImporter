@@ -18,6 +18,8 @@ public abstract class AlembicElement : MonoBehaviour
     public GCHandle m_thisHandle;
     
     protected Transform m_trans;
+    protected bool m_instance;
+    protected AbcAPI.aiObject m_abcSource;
 
     bool m_verbose;
     bool m_pendingUpdate;
@@ -94,15 +96,41 @@ public abstract class AlembicElement : MonoBehaviour
         AbcUpdate();
     }
 
-    public virtual void AbcSetup(AlembicStream abcStream,
-                                 AbcAPI.aiObject abcObj,
-                                 AbcAPI.aiSchema abcSchema)
+    protected void ResetInstance()
+    {
+        m_instance = false;
+        m_abcSource.ptr = (System.IntPtr)0;
+    }
+
+    protected void AbcBaseSetup(AlembicStream abcStream,
+                                AbcAPI.aiObject abcObj,
+                                AbcAPI.aiSchema abcSchema)
     {
         m_abcStream = abcStream;
         m_abcObj = abcObj;
         m_abcSchema = abcSchema;
         m_trans = GetComponent<Transform>();
+        m_instance = AbcAPI.aiIsInstance(abcObj);
 
+        if (m_instance)
+        {
+            m_abcSource = AbcAPI.aiGetInstanceSource(abcObj);
+            
+            if (m_abcSource.ptr == (System.IntPtr)0)
+            {
+                Debug.LogWarning("Cannot find abc instance source for \"" + AbcAPI.aiGetFullName(m_abcObj) + "\"");
+                m_instance = false;
+            }
+        }
+        else
+        {
+            m_abcSource.ptr = (System.IntPtr)0;
+        }
+    }
+    
+    protected void AbcCallbackSetup(AbcAPI.aiObject abcObj,
+                                    AbcAPI.aiSchema abcSchema)
+    {
         if (!m_thisHandle.IsAllocated)
         {
             m_thisHandle = GCHandle.Alloc(this);
@@ -113,6 +141,14 @@ public abstract class AlembicElement : MonoBehaviour
         AbcAPI.aiSetDestroyCallback(abcObj, DestroyCallback, ptr);
         AbcAPI.aiSchemaSetConfigCallback(abcSchema, ConfigCallback, ptr);
         AbcAPI.aiSchemaSetSampleCallback(abcSchema, SampleCallback, ptr);
+    }
+
+    public virtual void AbcSetup(AlembicStream abcStream,
+                                 AbcAPI.aiObject abcObj,
+                                 AbcAPI.aiSchema abcSchema)
+    {
+        AbcBaseSetup(abcStream, abcObj, abcSchema);
+        AbcCallbackSetup(abcObj, abcSchema);
     }
 
     public virtual void AbcInvalidate(bool abcObjDeleted)
@@ -135,12 +171,18 @@ public abstract class AlembicElement : MonoBehaviour
             }
             m_abcSchema.ptr = (System.IntPtr)0;
         }
+        
+        if (m_abcSource.ptr != (System.IntPtr)0)
+        {
+            m_abcSource.ptr = (System.IntPtr)0;
+        }
 
         if (m_thisHandle.IsAllocated)
         {
             m_thisHandle.Free();
         }
-
+        
+        m_instance = false;
         m_abcStream = null;
     }
 

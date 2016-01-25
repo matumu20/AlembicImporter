@@ -256,6 +256,7 @@ aiCLinkage aiExport void            aiSetConfig(aiContext* ctx, const aiConfig* 
 aiCLinkage aiExport float           aiGetStartTime(aiContext* ctx);
 aiCLinkage aiExport float           aiGetEndTime(aiContext* ctx);
 aiCLinkage aiExport aiObject*       aiGetTopObject(aiContext* ctx);
+aiCLinkage aiExport aiObject*       aiFindObject(aiContext* ctx, const char *path);
 aiCLinkage aiExport void            aiDestroyObject(aiContext* ctx, aiObject* obj);
 
 aiCLinkage aiExport void            aiUpdateSamples(aiContext* ctx, float time);
@@ -264,6 +265,8 @@ aiCLinkage aiExport void            aiEnumerateChild(aiObject *obj, aiNodeEnumer
 aiCLinkage aiExport const char*     aiGetNameS(aiObject* obj);
 aiCLinkage aiExport const char*     aiGetFullNameS(aiObject* obj);
 aiCLinkage aiExport void            aiSetDestroyCallback(aiObject* obj, aiDestroyCallback cb, void* arg);
+aiCLinkage aiExport bool            aiIsInstance(aiObject* obj);
+aiCLinkage aiExport aiObject*       aiGetInstanceSource(aiObject* obj);
 
 aiCLinkage aiExport void            aiSchemaSetSampleCallback(aiSchemaBase* schema, aiSampleCallback cb, void* arg);
 aiCLinkage aiExport void            aiSchemaSetConfigCallback(aiSchemaBase* schema, aiConfigCallback cb, void* arg);

@@ -118,9 +118,92 @@ void aiObject::notifyUpdate()
     }
 }
 
+aiObject* aiObject::getChild(const char *name, size_t nameLen)
+{
+    if (name)
+    {
+        if (nameLen == std::string::npos)
+        {
+            for (std::vector<aiObject*>::iterator it=m_children.begin(); it!=m_children.end(); ++it)
+            {
+                if (!strcmp(name, (*it)->getName()))
+                {
+                    return *it;
+                }
+            }
+        }
+        else
+        {
+            for (std::vector<aiObject*>::iterator it=m_children.begin(); it!=m_children.end(); ++it)
+            {
+                size_t childNameLen = (*it)->getNameLength();
+                if (childNameLen == nameLen && !strncmp(name, (*it)->getName(), childNameLen))
+                {
+                    return *it;
+                }
+            }
+        }
+    }
+    
+    return 0;
+}
+
+aiObject* aiObject::find(const char *name)
+{
+    if (name)
+    {
+        const char *next = strchr(name, '/');
+        
+        if (next == name)
+        {
+            return (m_parent == 0 ? find(name + 1) : 0);
+        }
+        else if (!next)
+        {
+            return getChild(name);
+        }
+        else
+        {
+            aiObject *child = getChild(name, next - name);
+            return (child ? child->find(next + 1) : 0);
+        }
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+bool aiObject::isInstance() const
+{
+    return m_abc.isInstanceDescendant();
+}
+
+aiObject* aiObject::getInstanceSource()
+{
+    if (!isInstance())
+    {
+        return 0;
+    }
+    else
+    {
+        if (m_abc.isInstanceRoot())
+        {
+            std::string path = m_abc.instanceSourcePath();
+            return m_ctx->findObject(path.c_str());
+        }
+        else
+        {
+            aiObject *pinst = m_parent->getInstanceSource();
+            return (pinst ? pinst->getChild(getName()) : 0);
+        }
+    }
+}
+
 aiContext*  aiObject::getContext()           { return m_ctx; }
 abcObject&  aiObject::getAbcObject()         { return m_abc; }
 const char* aiObject::getName() const        { return m_abc.getName().c_str(); }
+size_t      aiObject::getNameLength() const  { return m_abc.getName().length(); }
 const char* aiObject::getFullName() const    { return m_abc.getFullName().c_str(); }
 uint32_t    aiObject::getNumChildren() const { return m_children.size(); }
 aiObject*   aiObject::getChild(int i)        { return m_children[i]; }

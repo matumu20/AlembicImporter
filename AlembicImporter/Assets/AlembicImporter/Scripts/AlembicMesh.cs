@@ -51,6 +51,8 @@ public class AlembicMesh : AlembicElement
     AbcAPI.aiMeshSummary m_summary;
     AbcAPI.aiMeshSampleSummary m_sampleSummary;
     bool m_freshSetup = false;
+    AlembicMesh m_sourceMesh = null;
+    
 #if UNITY_EDITOR
     AbcAPI.aiFaceWindingOverride m_lastFaceWinding = AbcAPI.aiFaceWindingOverride.InheritStreamSetting;
     AbcAPI.aiNormalsModeOverride m_lastNormalsMode = AbcAPI.aiNormalsModeOverride.InheritStreamSetting;
@@ -122,26 +124,72 @@ public class AlembicMesh : AlembicElement
             m_splits[i].active = false;
         }
     }
+    
+    bool ValidateInstanceSource()
+    {
+        // pre-condition: m_abcObj is an instance (direct or indirect)
 
+        string srcPath = AbcAPI.aiGetFullName(m_abcSource);
+
+        GameObject sourceObject = AbcUtils.FindNode(m_abcStream.gameObject, srcPath);
+        
+        if (sourceObject == null)
+        {
+            Debug.LogWarning("Cannot find instance source '" + srcPath + "' unity object.");
+            ResetInstance();
+            return false;
+        }
+        else
+        {
+            m_sourceMesh = sourceObject.GetComponent<AlembicMesh>();
+            
+            if (m_sourceMesh == null)
+            {
+                Debug.LogWarning("Instance source '" + srcPath + "' unity object has no AlembicMesh component.");
+                ResetInstance();
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+    }
+
+    public int GetSplitCount()
+    {
+        return (m_sourceMesh != null ? m_sourceMesh.GetSplitCount() : m_splits.Count);
+    }
+    
+    public List<Split> GetSplits()
+    {
+        return (m_sourceMesh != null ? m_sourceMesh.GetSplits() : m_splits);
+    }
+    
     public int GetSubMeshCount()
     {
-        return m_submeshes.Count;
+        return (m_sourceMesh != null ? m_sourceMesh.GetSubMeshCount() m_submeshes.Count);
     }
     
     public List<Submesh> GetSubMeshes()
     {
-        return m_submeshes;
+        return (m_sourceMesh != null ? m_sourceMesh.GetSubMeshes() : m_submeshes);
     }
 
     public override void AbcSetup(AlembicStream abcStream,
                                   AbcAPI.aiObject abcObj,
                                   AbcAPI.aiSchema abcSchema)
     {
-        base.AbcSetup(abcStream, abcObj, abcSchema);
-
-        AbcAPI.aiPolyMeshGetSummary(abcSchema, ref m_summary);
-
-        m_freshSetup = true;
+        AbcBaseSetup(abcStream, abcObj, abcSchema);
+        
+        if (!m_instance || !ValidateInstanceSource())
+        {
+            AbcCallbackSetup(abcObj, abcSchema);
+            
+            AbcAPI.aiPolyMeshGetSummary(abcSchema, ref m_summary);
+            
+            m_freshSetup = true;
+        }
     }
 
     public override void AbcGetConfig(ref AbcAPI.aiConfig config)
@@ -352,6 +400,61 @@ public class AlembicMesh : AlembicElement
             return;
         }
         
+        if (m_sourceMesh != null)
+        {
+            List<Split> splits = m_sourceMesh.GetSplits();
+            
+            if (splits != null)
+            {
+                if (splits.Count == 1 && splits[0].host == m_sourceMesh.gameObject)
+                {
+                    SetupInstanceMesh(splits[0].host, gameObject);
+                }
+                else
+                {
+                    int s = 0;
+                    
+                    foreach (Split split in splits)
+                    {
+                        string name = m_trans.gameObject.name + "_split_" + s;
+
+                        Transform trans = m_trans.FindChild(name);
+                        
+                        if (trans == null)
+                        {
+                            GameObject go = new GameObject();
+                            go.name = name;
+
+                            trans = go.GetComponent<Transform>();
+                            trans.parent = m_trans;
+                            trans.localPosition = Vector3.zero;
+                            trans.localEulerAngles = Vector3.zero;
+                            trans.localScale = Vector3.one;
+                        }
+                        
+                        trans.gameObject.SetActive(split.active);
+                        
+                        if (split.active)
+                        {
+                            SetupInstanceMesh(split.host, trans.gameObject);
+                        }
+                        
+                        ++s;
+                    }
+                }
+            }
+
+            return;
+        }
+        else if (m_instance)
+        {
+            // Instance source was deleted, turn this object into a clone
+            ResetInstance();
+            AbcCallbackSetup(m_abcObj, m_abcSchema);
+
+            return;
+        }
+        
 #if UNITY_EDITOR
         if (!Application.isPlaying && (m_tangentsMode != m_lastTangentsMode ||
                                        m_normalsMode != m_lastNormalsMode ||
@@ -492,6 +595,53 @@ public class AlembicMesh : AlembicElement
         }
         
         AbcClean();
+    }
+
+    void SetupInstanceMesh(GameObject src, GameObject dst)
+    {
+        MeshFilter srcFilter = src.GetComponent<MeshFilter>();
+        MeshFilter dstFilter = dst.GetComponent<MeshFilter>();
+        
+        MeshRenderer srcRenderer = src.GetComponent<MeshRenderer>();
+        MeshRenderer dstRenderer = dst.GetComponent<MeshRenderer>();
+        
+        if (srcFilter == null)
+        {
+            if (dstFilter != null)
+            {
+                Component.DestroyImmediate(dstFilter);
+            }
+        }
+        else
+        {
+            if (dstFilter == null)
+            {
+                // Setup MeshFilter on instanced object
+                dstFilter = dst.AddComponent<MeshFilter>();
+                dstFilter.sharedMesh = srcFilter.sharedMesh;
+            }
+        }
+        
+        if (srcRenderer == null)
+        {
+            if (dstRenderer != null)
+            {
+                Component.DestroyImmediate(dstRenderer);
+            }
+        }
+        else
+        {
+            if (dstRenderer == null)
+            {
+                // Setup MeshRenderer on instanced object
+                dstRenderer = dst.AddComponent<MeshRenderer>();
+#if UNITY_EDITOR
+                EditorUtility.CopySerialized(srcRenderer, dstRenderer);
+#else
+                AbcUtils.CopyComponent(srcRenderer, dstRenderer);
+#endif
+            }
+        }
     }
 
     Mesh AddMeshComponents(AbcAPI.aiObject abc, GameObject gameObject)

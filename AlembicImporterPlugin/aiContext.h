@@ -23,6 +23,7 @@ public:
     void setConfig(const aiConfig &config);
 
     aiObject* getTopObject();
+    aiObject* findObject(const char *path);
     void destroyObject(aiObject *obj);
 
     float getStartTime() const;

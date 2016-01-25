@@ -15,10 +15,13 @@ public:
     ~aiObject();
 
     const char* getName() const;
+    size_t      getNameLength() const;
     const char* getFullName() const;
     uint32_t    getNumChildren() const;
     aiObject*   getChild(int i);
+    aiObject*   getChild(const char *name, size_t nameLen=std::string::npos);
     aiObject*   getParent();
+    aiObject*   find(const char *name);
 
     void        readConfig();
     void        updateSample(float time);
@@ -34,6 +37,9 @@ public:
 
     void        setDestroyCallback(aiDestroyCallback cb, void *arg);
     void        invokeDestroyCallback();
+
+    bool        isInstance() const;
+    aiObject*   getInstanceSource();
 
 public:
 

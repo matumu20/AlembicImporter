@@ -73,6 +73,11 @@ aiCLinkage aiExport aiObject* aiGetTopObject(aiContext* ctx)
     return (ctx ? ctx->getTopObject() : 0);
 }
 
+aiCLinkage aiExport aiObject* aiFindObject(aiContext* ctx, const char *path)
+{
+    return (ctx ? ctx->findObject(path) : 0);
+}
+
 aiCLinkage aiExport void aiDestroyObject(aiContext* ctx, aiObject* obj)
 {
     if (ctx)
@@ -128,6 +133,16 @@ aiCLinkage aiExport void aiSetDestroyCallback(aiObject* obj, aiDestroyCallback c
     {
         obj->setDestroyCallback(cb, arg);
     }
+}
+
+aiCLinkage aiExport bool aiIsInstance(aiObject* obj)
+{
+    return (obj ? obj->isInstance() : false);
+}
+
+aiCLinkage aiExport aiObject* aiGetInstanceSource(aiObject* obj)
+{
+    return (obj ? obj->getInstanceSource() : 0);
 }
 
 aiCLinkage aiExport void aiSchemaSetSampleCallback(aiSchemaBase* schema, aiSampleCallback cb, void* arg)
