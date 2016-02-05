@@ -106,8 +106,12 @@ public class AlembicMaterial : MonoBehaviour
 
                         if (submeshIndex >= assignedMaterials.Length)
                         {
-                            Debug.Log("No material for submesh");
-                            return;
+                            int oldLen = assignedMaterials.Length;
+                            Array.Resize(ref assignedMaterials, submeshIndex + 1);
+                            for (int newIdx=oldLen; newIdx<=submeshIndex; ++newIdx)
+                            {
+                                assignedMaterials[newIdx] = null;
+                            }
                         }
 
                         if (assignedMaterials[submeshIndex] != materials[submesh.facesetIndex])
@@ -253,7 +257,7 @@ public class AlembicMaterial : MonoBehaviour
 
                 int instNum = (inst == null ? 0 : Convert.ToInt32(inst.Value));
 
-                GameObject target = AbcUtils.FindNode(root, path, instNum);
+                GameObject target = AbcUtils.FindNode(root, path, instNum, typeof(AlembicMesh));
                 
                 if (target == null)
                 {
