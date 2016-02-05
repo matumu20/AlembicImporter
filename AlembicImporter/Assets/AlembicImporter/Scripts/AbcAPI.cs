@@ -482,25 +482,28 @@ public class AbcUtils
     
     private static char[] PathSep = new char[1] { '/' };
     
-    private static GameObject SearchNodeInstance(Transform parent, string name, int instNum, ref int curInst)
+    private static GameObject SearchNodeInstance(Transform parent, string name, int instNum, ref int curInst, System.Type checkCompType=null)
     {
         Transform node = parent.FindChild(name);
 
         if (node != null)
         {
-            if (curInst == instNum)
+            if (checkCompType == null || node.gameObject.GetComponent(checkCompType) != null)
             {
-                return node.gameObject;
-            }
-            else
-            {
-                ++curInst;
+                if (curInst == instNum)
+                {
+                    return node.gameObject;
+                }
+                else
+                {
+                    ++curInst;
+                }
             }
         }
 
         for (int i = 0; i < parent.childCount; ++i)
         {
-            GameObject rv = SearchNodeInstance(parent.GetChild(i), name, instNum, ref curInst);
+            GameObject rv = SearchNodeInstance(parent.GetChild(i), name, instNum, ref curInst, checkCompType);
 
             if (rv != null)
             {
@@ -511,7 +514,7 @@ public class AbcUtils
         return null;
     }
   
-    public static GameObject FindNode(GameObject root, string path, int instNum=0)
+    public static GameObject FindNode(GameObject root, string path, int instNum=0, System.Type checkCompType=null)
     {
         if (root == null)
         {
@@ -557,7 +560,15 @@ public class AbcUtils
             }
             else
             {
-                return curNode.gameObject;
+                if (checkCompType == null || curNode.gameObject.GetComponent(checkCompType) != null)
+                {
+                    return curNode.gameObject;
+                }
+                else
+                {
+                    Debug.Log("Found node but no component of type \"" + checkCompType.Name + "\" attached.");
+                    return null;
+                }
             }
         }
         else
@@ -576,7 +587,7 @@ public class AbcUtils
                 instNum = 0;
             }
 
-            return SearchNodeInstance(root.transform, name, instNum, ref curInst);
+            return SearchNodeInstance(root.transform, name, instNum, ref curInst, checkCompType);
         }
     }
     
