@@ -407,11 +407,17 @@ public class AlembicStream : MonoBehaviour
 
         if (m_loaded)
         {
-            m_startTime = AbcAPI.aiGetStartTime(m_abc);
-            m_endTime = AbcAPI.aiGetEndTime(m_abc);
-            m_timeOffset = -m_startTime;
-            m_timeScale = 1.0f;
-            m_preserveStartTime = true;
+            if (m_startTime <= m_endTime)
+            {
+                m_startTime = AbcAPI.aiGetStartTime(m_abc);
+                m_endTime = AbcAPI.aiGetEndTime(m_abc);
+            }
+            if (createMissingNodes)
+            {
+                m_timeOffset = -m_startTime;
+                m_timeScale = 1.0f;
+                m_preserveStartTime = true;
+            }
             m_forceRefresh = true;
 
             AbcSyncConfig();
