@@ -33,6 +33,42 @@ public class AlembicMaterial : MonoBehaviour
     {
     }
     
+    string GetFullpath(Transform t)
+    {
+        if (t == null)
+        {
+            return "";
+        }
+        else
+        {
+            return (GetFullpath(t.parent) + "/" + t.name);
+        }
+    }
+    
+    bool SameFacesets(Facesets fs0, Facesets fs1)
+    {
+        if ((fs0.faceCounts.Length != fs1.faceCounts.Length) ||
+            (fs0.faceIndices.Length != fs1.faceIndices.Length))
+        {
+            return false;
+        }
+        for (int i=0; i<fs0.faceCounts.Length; ++i)
+        {
+            if (fs0.faceCounts[i] != fs1.faceCounts[i])
+            {
+                return false;
+            }
+        }
+        for (int i=0; i<fs0.faceIndices.Length; ++i)
+        {
+            if (fs0.faceIndices[i] != fs1.faceIndices[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     void Update()
     {
         if (materials.Count > 0)
@@ -43,20 +79,36 @@ public class AlembicMaterial : MonoBehaviour
             {
                 int splitIndex = 0;
                 int submeshIndex = 0;
+                int materialIndex = 0;
 
                 if (abcmesh.GetSubMeshCount() < materials.Count)
                 {
                     // should have at least materials.Count submeshes
-                    Debug.Log("\"" + abcmesh.name + "\": Not enough submeshes for all assigned materials. (" + materials.Count + " material(s) for " + abcmesh.GetSubMeshCount() + " submesh(es))");
+                    Debug.LogWarning("\"" + GetFullpath(transform) + "\": Not enough submeshes for all assigned materials. (" + materials.Count + " material(s) for " + abcmesh.GetSubMeshCount() + " submesh(es))");
                     return;
                 }
 
                 MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
 
+                if (abcmesh.IsInstance())
+                {
+                    // If facesets are different, submeshing must differ and, as such,
+                    // mesh must be be uninstanced
+                    AlembicMaterial mmat = abcmesh.GetInstanceSourceMaterial();
+                    if (mmat != null)
+                    {
+                        if (!SameFacesets(facesetsCache, mmat.facesetsCache))
+                        {
+                            Debug.LogWarning("\"" + GetFullpath(transform) + "\": Instance facesets differ from source object. Material assignments may lead to unexpected results.");
+                        }
+                    }
+                }
+
                 foreach (AlembicMesh.Submesh submesh in abcmesh.GetSubMeshes())
                 {
                     if (submesh.splitIndex != splitIndex)
                     {
+                        Debug.Log("\"" + GetFullpath(transform) + "\": Reset submesh index to 0.");
                         submeshIndex = 0;
                     }
 
@@ -68,7 +120,7 @@ public class AlembicMaterial : MonoBehaviour
                     {
                         if (submesh.splitIndex > 0)
                         {
-                            Debug.Log("Invalid split index");
+                            Debug.LogWarning("\"" + GetFullpath(transform) + "\": Invalid split index");
                             return;
                         }
 
@@ -89,7 +141,7 @@ public class AlembicMaterial : MonoBehaviour
 
                     if (splitRenderer == null)
                     {
-                        Debug.Log("No renderer on \"" + gameObject.name + "\" to assign materials to");
+                        Debug.LogWarning("\"" + GetFullpath(transform) + "\": No renderer on \"" + gameObject.name + "\" to assign materials to");
                         return;
                     }
 
@@ -97,11 +149,21 @@ public class AlembicMaterial : MonoBehaviour
 
                     if (submesh.facesetIndex != -1)
                     {
-                        if (submesh.facesetIndex < 0 || submesh.facesetIndex >= materials.Count)
+                        materialIndex = submesh.facesetIndex;
+
+                        // Try to accomodate for invalid values
+                        if (materialIndex < 0)
                         {
-                            // invalid facesetIndex, do no update material assignments at all
-                            Debug.Log("Invalid faceset index");
-                            return;
+                            materialIndex = 0;
+                        }
+                        else if (materialIndex >= materials.Count)
+                        {
+                            materialIndex = materials.Count - 1;
+                        }
+
+                        if (materialIndex != submesh.facesetIndex)
+                        {
+                            Debug.LogWarning("\"" + GetFullpath(transform) + "\": Invalid faceset index " + submesh.facesetIndex + ". Use material " + materialIndex + " instead (" + materials.Count + " material(s))");
                         }
 
                         if (submeshIndex >= assignedMaterials.Length)
@@ -114,9 +176,11 @@ public class AlembicMaterial : MonoBehaviour
                             }
                         }
 
-                        if (assignedMaterials[submeshIndex] != materials[submesh.facesetIndex])
+                        Material material = (materialIndex < 0 ? null : materials[materialIndex]);
+
+                        if (assignedMaterials[submeshIndex] != material)
                         {
-                            assignedMaterials[submeshIndex] = materials[submesh.facesetIndex];
+                            assignedMaterials[submeshIndex] = material;
                             splitRenderer.sharedMaterials = assignedMaterials;
 
                             // propagate first split single material assignment to parent renderer if it exists
@@ -247,12 +311,16 @@ public class AlembicMaterial : MonoBehaviour
 
             foreach (XmlNode shader in shaders)
             {
-                XmlAttribute name = shader.Attributes["name"];
+                XmlAttribute name = shader.Attributes["surface"];
                 XmlAttribute inst = shader.Attributes["instance"];
 
                 if (name == null)
                 {
-                    continue;
+                    name = shader.Attributes["name"];
+                    if (name == null)
+                    {
+                        continue;
+                    }
                 }
 
                 int instNum = (inst == null ? 0 : Convert.ToInt32(inst.Value));

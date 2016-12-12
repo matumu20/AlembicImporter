@@ -15,8 +15,8 @@ public class AlembicStream : MonoBehaviour
     public enum CycleType { Hold, Loop, Reverse, Bounce };
 
     [Header("Abc")]
-    public string m_pathToAbc;
-    public float m_time;
+    public string m_pathToAbc = "";
+    public float m_time = 0.0f;
 
     [Header("Playback")]
     public float m_startTime = 0.0f;
@@ -27,8 +27,8 @@ public class AlembicStream : MonoBehaviour
     public CycleType m_cycle = CycleType.Hold;
 
     [Header("Data")]
-    public bool m_swapHandedness;
-    public bool m_swapFaceWinding;
+    public bool m_swapHandedness = false;
+    public bool m_swapFaceWinding = false;
     public bool m_submeshPerUVTile = true;
     public AbcAPI.aiNormalsMode m_normalsMode = AbcAPI.aiNormalsMode.ComputeIfMissing;
     public AbcAPI.aiTangentsMode m_tangentsMode = AbcAPI.aiTangentsMode.None;
@@ -42,7 +42,7 @@ public class AlembicStream : MonoBehaviour
     [Header("Advanced")]
     public bool m_useThreads = false;
     public int m_sampleCacheSize = 0;
-    public bool m_forceRefresh;
+    public bool m_forceRefresh = false;
 
     [HideInInspector] public AbcAPI.aiConfig m_config;
 

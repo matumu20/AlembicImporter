@@ -156,6 +156,16 @@ public class AlembicMesh : AlembicElement
         }
     }
 
+    public bool IsInstance()
+    {
+        return (m_sourceMesh != null);
+    }
+
+    public AlembicMaterial GetInstanceSourceMaterial()
+    {
+        return (m_sourceMesh ? m_sourceMesh.gameObject.GetComponent<AlembicMaterial>() : null);
+    }
+    
     public int GetSplitCount()
     {
         return (m_sourceMesh != null ? m_sourceMesh.GetSplitCount() : m_splits.Count);
@@ -451,7 +461,6 @@ public class AlembicMesh : AlembicElement
             // Instance source was deleted, turn this object into a clone
             ResetInstance();
             AbcCallbackSetup(m_abcObj, m_abcSchema);
-
             return;
         }
         
