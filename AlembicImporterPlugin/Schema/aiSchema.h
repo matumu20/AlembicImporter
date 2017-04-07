@@ -95,7 +95,7 @@ public:
 
     int64_t getSampleIndex(float time) const
     {
-        Abc::ISampleSelector ss(double(time), Abc::ISampleSelector::kFloorIndex);
+        Abc::ISampleSelector ss(double(time), Abc::ISampleSelector::kNearIndex);
         return ss.getIndex(m_timeSampling, m_numSamples);
     }
 
