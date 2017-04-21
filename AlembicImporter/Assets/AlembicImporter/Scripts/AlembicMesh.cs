@@ -419,6 +419,12 @@ public class AlembicMesh : AlembicElement
                 if (splits.Count == 1 && splits[0].host == m_sourceMesh.gameObject)
                 {
                     SetupInstanceMesh(splits[0].host, gameObject);
+
+                    MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
+                    if (renderer != null)
+                    {
+                        renderer.enabled = (splits[0].active && !m_abcStream.m_clip);
+                    }
                 }
                 else
                 {
@@ -450,7 +456,7 @@ public class AlembicMesh : AlembicElement
                         MeshRenderer renderer = trans.gameObject.GetComponent<MeshRenderer>();
                         if (renderer != null)
                         {
-                            renderer.enabled = split.active;
+                            renderer.enabled = (split.active && !m_abcStream.m_clip);
                         }
                         
                         ++s;
@@ -485,6 +491,15 @@ public class AlembicMesh : AlembicElement
         
         if (!AbcIsDirty())
         {
+            for (int s=0; s<m_splits.Count; ++s)
+            {
+                Split split = m_splits[s];
+                MeshRenderer renderer = (split.host != null ? split.host.GetComponent<MeshRenderer>() : null);
+                if (renderer != null)
+                {
+                    renderer.enabled = (split.active && !m_abcStream.m_clip);
+                }
+            }
             return;
         }
 
@@ -579,7 +594,7 @@ public class AlembicMesh : AlembicElement
 
                 split.clear = false;
 
-                renderer.enabled = true;
+                renderer.enabled = !m_abcStream.m_clip;
             }
             else
             {

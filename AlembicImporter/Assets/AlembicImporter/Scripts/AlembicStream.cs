@@ -12,7 +12,7 @@ using UnityEditor;
 [ExecuteInEditMode]
 public class AlembicStream : MonoBehaviour
 {
-    public enum CycleType { Hold, Loop, Reverse, Bounce };
+    public enum CycleType { Hold, Loop, Reverse, Bounce, Clip };
 
     [Header("Abc")]
     public string m_pathToAbc = "";
@@ -62,6 +62,8 @@ public class AlembicStream : MonoBehaviour
     Transform m_trans;
     string m_lastPathToAbc;
 
+    [HideInInspector] public bool m_clip = false;
+
     // --- For internal use ---
 
     bool AbcIsValid()
@@ -88,6 +90,19 @@ public class AlembicStream : MonoBehaviour
         }
     }
 
+    bool AbcTimeIsClipped(float inTime)
+    {
+        if (m_cycle == CycleType.Clip)
+        {
+            float outTime = m_timeScale * (inTime - m_timeOffset) - (m_preserveStartTime ? (m_startTime * (m_timeScale - 1.0f)) : 0.0f);
+            return (outTime < (m_startTime - m_timeEps) || (m_endTime + m_timeEps) < outTime);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     float AbcTime(float inTime)
     {
         float extraOffset = 0.0f;
@@ -103,7 +118,7 @@ public class AlembicStream : MonoBehaviour
         // apply speed and offset
         float outTime = m_timeScale * (inTime - m_timeOffset) - extraOffset;
 
-        if (m_cycle == CycleType.Hold)
+        if (m_cycle == CycleType.Hold || m_cycle == CycleType.Clip)
         {
             if (outTime < (m_startTime - m_timeEps))
             {
@@ -303,6 +318,7 @@ public class AlembicStream : MonoBehaviour
                 m_preserveStartTime = true;
                 m_forceRefresh = true;
                 m_trans = GetComponent<Transform>();
+                m_clip = AbcTimeIsClipped(m_time);
 
                 AbcSyncConfig();
 
@@ -358,6 +374,7 @@ public class AlembicStream : MonoBehaviour
             }
 
             m_time = time;
+            m_clip = AbcTimeIsClipped(m_time);
 
             float abcTime = AbcTime(m_time);
             float aspectRatio = AbcAPI.GetAspectRatio(m_aspectRatioMode);
@@ -452,6 +469,7 @@ public class AlembicStream : MonoBehaviour
                 m_preserveStartTime = true;
             }
             m_forceRefresh = true;
+            m_clip = AbcTimeIsClipped(m_time);
 
             AbcSyncConfig();
 
