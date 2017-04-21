@@ -677,9 +677,22 @@ public class AlembicMesh : AlembicElement
             {
                 renderer = gameObject.AddComponent<MeshRenderer>();
             }
-            
-            Material material = UnityEngine.Object.Instantiate(AbcUtils.GetDefaultMaterial());
-            material.name = "Material_0";
+
+            Material material = null;
+            if (gameObject != m_trans.gameObject)
+            {
+                // Setting up new MeshRenderer on a split
+                MeshRenderer parentRenderer = m_trans.gameObject.GetComponent<MeshRenderer>();
+                if (parentRenderer != null)
+                {
+                    material = parentRenderer.sharedMaterial;
+                }
+            }
+            if (material == null)
+            {
+                material = UnityEngine.Object.Instantiate(AbcUtils.GetDefaultMaterial());
+                material.name = "Material_0";
+            }
 
             renderer.sharedMaterial = material;
         }
