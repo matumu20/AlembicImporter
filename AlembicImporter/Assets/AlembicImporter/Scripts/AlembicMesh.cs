@@ -442,11 +442,15 @@ public class AlembicMesh : AlembicElement
                             trans.localScale = Vector3.one;
                         }
                         
-                        trans.gameObject.SetActive(split.active);
-                        
                         if (split.active)
                         {
                             SetupInstanceMesh(split.host, trans.gameObject);
+                        }
+                        
+                        MeshRenderer renderer = trans.gameObject.GetComponent<MeshRenderer>();
+                        if (renderer != null)
+                        {
+                            renderer.enabled = split.active;
                         }
                         
                         ++s;
@@ -540,12 +544,12 @@ public class AlembicMesh : AlembicElement
                 // update the bounds
                 split.mesh.bounds = new Bounds(split.center, split.size);
 
+                MeshRenderer renderer = split.host.GetComponent<MeshRenderer>();
+
                 if (split.clear)
                 {
                     split.mesh.subMeshCount = split.submeshCount;
 
-                    MeshRenderer renderer = split.host.GetComponent<MeshRenderer>();
-                    
                     Material[] currentMaterials = renderer.sharedMaterials;
 
                     int nmat = currentMaterials.Length;
@@ -575,11 +579,15 @@ public class AlembicMesh : AlembicElement
 
                 split.clear = false;
 
-                split.host.SetActive(true);
+                renderer.enabled = true;
             }
             else
             {
-                split.host.SetActive(false);
+                MeshRenderer renderer = split.host.GetComponent<MeshRenderer>();
+                if (renderer != null)
+                {
+                    renderer.enabled = false;
+                }
             }
         }
 
