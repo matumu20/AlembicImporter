@@ -238,6 +238,8 @@ public class AbcAPI
     [DllImport ("AlembicImporter")] public static extern aiSchema   aiGetCamera(aiObject obj);
     [DllImport ("AlembicImporter")] public static extern void       aiCameraGetData(aiSample sample, ref aiCameraData data);
     
+    [DllImport ("AlembicImporter")] public static extern float      aiGetObjectStartTime(aiObject obj);
+    [DllImport ("AlembicImporter")] public static extern float      aiGetObjectEndTime(aiObject obj);
 
     class ImportContext
     {

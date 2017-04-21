@@ -477,6 +477,28 @@ public class AlembicStream : MonoBehaviour
         }
     }
 
+    public bool AbcIsClipped(AbcAPI.aiObject obj)
+    {
+        if (m_cycle == CycleType.Clip)
+        {
+            if (!m_clip)
+            {
+                float s = AbcAPI.aiGetObjectStartTime(obj);
+                float e = AbcAPI.aiGetObjectEndTime(obj);
+                float t = AbcTime(m_time);
+                return (t < (s - m_timeEps) || (e + m_timeEps) < t);
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     // --- method overrides ---
 
     void OnApplicationQuit()

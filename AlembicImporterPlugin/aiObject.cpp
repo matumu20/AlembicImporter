@@ -217,4 +217,12 @@ aiXForm&    aiObject::getXForm()      { return *m_xform; }
 aiPolyMesh& aiObject::getPolyMesh()   { return *m_polymesh; }
 aiCamera&   aiObject::getCamera()     { return *m_camera; }
 
+float aiObject::getStartTime() const
+{
+    return (m_schemas.size() == 0 ? 0.0f : m_schemas[0]->getStartTime());
+}
 
+float aiObject::getEndTime() const
+{
+    return (m_schemas.size() == 0 ? 0.0f : m_schemas[0]->getEndTime());
+}

@@ -44,10 +44,18 @@ public:
     void readConfig();
     void notifyUpdate();
 
+    inline float getStartTime() const { return m_startTime; }
+    inline float getEndTime() const { return m_endTime; }
+
     static Abc::ISampleSelector MakeSampleSelector(float time);
     static Abc::ISampleSelector MakeSampleSelector(int64_t index);
 
 protected:
+
+    inline void setTimeRange(float s, float e) { m_startTime = s; m_endTime = e; }
+
+protected:
+
     aiObject *m_obj;
     aiConfigCallback m_configCb;
     void *m_configCbArg;
@@ -58,6 +66,8 @@ protected:
     bool m_varyingTopology;
     aiSampleBase *m_pendingSample;
     bool m_pendingTopologyChanged;
+    float m_startTime;
+    float m_endTime;
 };
 
 
@@ -83,6 +93,7 @@ public:
         m_constant = m_schema.isConstant();
         m_timeSampling = m_schema.getTimeSampling();
         m_numSamples = (int64_t) m_schema.getNumSamples();
+        setTimeRange(m_timeSampling->getSampleTime(0), m_timeSampling->getSampleTime(m_numSamples - 1));
     }
 
     virtual ~aiTSchema()
@@ -228,6 +239,11 @@ public:
             auto it = m_samples.find(sampleIndex);
             return (it != m_samples.end() ? it->second.get() : nullptr);
         }
+    }
+
+    float getStartTime() const
+    {
+        return m_startTime;
     }
 
 protected:

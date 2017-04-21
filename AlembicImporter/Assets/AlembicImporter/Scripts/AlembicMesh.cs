@@ -423,7 +423,7 @@ public class AlembicMesh : AlembicElement
                     MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
                     if (renderer != null)
                     {
-                        renderer.enabled = (splits[0].active && !m_abcStream.m_clip);
+                        renderer.enabled = (splits[0].active && !m_abcStream.AbcIsClipped(m_abcObj));
                     }
                 }
                 else
@@ -456,7 +456,7 @@ public class AlembicMesh : AlembicElement
                         MeshRenderer renderer = trans.gameObject.GetComponent<MeshRenderer>();
                         if (renderer != null)
                         {
-                            renderer.enabled = (split.active && !m_abcStream.m_clip);
+                            renderer.enabled = (split.active && !m_abcStream.AbcIsClipped(m_abcObj));
                         }
                         
                         ++s;
@@ -497,7 +497,7 @@ public class AlembicMesh : AlembicElement
                 MeshRenderer renderer = (split.host != null ? split.host.GetComponent<MeshRenderer>() : null);
                 if (renderer != null)
                 {
-                    renderer.enabled = (split.active && !m_abcStream.m_clip);
+                    renderer.enabled = (split.active && !m_abcStream.AbcIsClipped(m_abcObj));
                 }
             }
             return;
@@ -594,7 +594,7 @@ public class AlembicMesh : AlembicElement
 
                 split.clear = false;
 
-                renderer.enabled = !m_abcStream.m_clip;
+                renderer.enabled = !m_abcStream.AbcIsClipped(m_abcObj);
             }
             else
             {

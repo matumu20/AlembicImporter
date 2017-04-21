@@ -271,3 +271,14 @@ aiCLinkage aiExport void aiCameraGetData(aiCameraSample* sample, aiCameraData *o
         sample->getData(*outData);
     }
 }
+
+
+aiCLinkage aiExport float aiGetObjectStartTime(aiObject* obj)
+{
+    return (obj ? obj->getStartTime() : 0.0f);
+}
+
+aiCLinkage aiExport float aiGetObjectEndTime(aiObject* obj)
+{
+    return (obj ? obj->getEndTime() : 0.0f);
+}

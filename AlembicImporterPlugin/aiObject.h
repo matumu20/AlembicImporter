@@ -41,6 +41,9 @@ public:
     bool        isInstance() const;
     aiObject*   getInstanceSource();
 
+    float       getStartTime() const;
+    float       getEndTime() const;
+
 public:
 
     aiContext*  getContext();
