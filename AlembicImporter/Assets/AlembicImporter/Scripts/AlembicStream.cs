@@ -278,9 +278,27 @@ public class AlembicStream : MonoBehaviour
 
             if (AbcIsValid())
             {
-                m_startTime = AbcAPI.aiGetStartTime(m_abc);
-                m_endTime = AbcAPI.aiGetEndTime(m_abc);
-                m_timeOffset = -m_startTime;
+                float abcStart = AbcAPI.aiGetStartTime(m_abc);
+                float abcEnd = AbcAPI.aiGetEndTime(m_abc);
+
+                if (m_startTime >= m_endTime)
+                {
+                    m_startTime = abcStart;
+                    m_endTime = abcEnd;
+                }
+                else
+                {
+                    if (m_startTime < abcStart)
+                    {
+                        m_startTime = abcStart;
+                    }
+                    if (m_endTime > abcEnd)
+                    {
+                        m_endTime = abcEnd;
+                    }
+                }
+
+                m_timeOffset = -abcStart;
                 m_timeScale = 1.0f;
                 m_preserveStartTime = true;
                 m_forceRefresh = true;
@@ -407,14 +425,29 @@ public class AlembicStream : MonoBehaviour
 
         if (m_loaded)
         {
-            if (m_startTime <= m_endTime)
+            float abcStart = AbcAPI.aiGetStartTime(m_abc);
+            float abcEnd = AbcAPI.aiGetEndTime(m_abc);
+
+            if (m_startTime >= m_endTime)
             {
-                m_startTime = AbcAPI.aiGetStartTime(m_abc);
-                m_endTime = AbcAPI.aiGetEndTime(m_abc);
+                m_startTime = abcStart;
+                m_endTime = abcEnd;
             }
+            else
+            {
+                if (m_startTime < abcStart)
+                {
+                    m_startTime = abcStart;
+                }
+                if (m_endTime > abcEnd)
+                {
+                    m_endTime = abcEnd;
+                }
+            }
+
             if (createMissingNodes)
             {
-                m_timeOffset = -m_startTime;
+                m_timeOffset = -abcStart;
                 m_timeScale = 1.0f;
                 m_preserveStartTime = true;
             }
