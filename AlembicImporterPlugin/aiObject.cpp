@@ -226,3 +226,8 @@ float aiObject::getEndTime() const
 {
     return (m_schemas.size() == 0 ? 0.0f : m_schemas[0]->getEndTime());
 }
+
+bool aiObject::isVisible() const
+{
+    return (m_schemas.size() == 0 ? false : m_schemas[0]->isVisible());
+}

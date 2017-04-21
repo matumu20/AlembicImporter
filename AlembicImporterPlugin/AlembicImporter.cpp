@@ -282,3 +282,8 @@ aiCLinkage aiExport float aiGetObjectEndTime(aiObject* obj)
 {
     return (obj ? obj->getEndTime() : 0.0f);
 }
+
+aiCLinkage aiExport bool aiIsVisible(aiObject* obj)
+{
+    return (obj ? obj->isVisible() : false);
+}

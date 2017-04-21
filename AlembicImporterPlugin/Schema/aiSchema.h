@@ -46,6 +46,7 @@ public:
 
     inline float getStartTime() const { return m_startTime; }
     inline float getEndTime() const { return m_endTime; }
+    inline bool isVisible() const { return m_visible; }
 
     static Abc::ISampleSelector MakeSampleSelector(float time);
     static Abc::ISampleSelector MakeSampleSelector(int64_t index);
@@ -53,6 +54,7 @@ public:
 protected:
 
     inline void setTimeRange(float s, float e) { m_startTime = s; m_endTime = e; }
+    inline void setVisible(bool v) { m_visible = v; }
 
 protected:
 
@@ -68,6 +70,7 @@ protected:
     bool m_pendingTopologyChanged;
     float m_startTime;
     float m_endTime;
+    bool m_visible;
 };
 
 
@@ -121,10 +124,28 @@ public:
             readConfig();
         }
 
+        // Read visibility
+        Abc::ISampleSelector ss(double(time), Abc::ISampleSelector::kNearIndex);
+
+        AbcGeom::ObjectVisibility vis = AbcGeom::GetVisibility(m_obj->getAbcObject(), ss);
+        switch (vis)
+        {
+        case AbcGeom::kVisibilityDeferred:
+            setVisible(!AbcGeom::IsAncestorInvisible(m_obj->getAbcObject(), ss));
+            break;
+        case AbcGeom::kVisibilityHidden:
+            setVisible(false);
+            break;
+        case AbcGeom::kVisibilityVisible:
+        default:
+            setVisible(true);
+        }
+
+        // Read sample
         Sample *sample = 0;
         bool topologyChanged = false;
-        int64_t sampleIndex = getSampleIndex(time);
-        
+        int64_t sampleIndex = ss.getIndex(m_timeSampling, m_numSamples);
+
         if (dontUseCache())
         {
             if (m_samples.size() > 0)

@@ -479,7 +479,11 @@ public class AlembicStream : MonoBehaviour
 
     public bool AbcIsClipped(AbcAPI.aiObject obj)
     {
-        if (m_cycle == CycleType.Clip)
+        if (!AbcAPI.aiIsVisible(obj))
+        {
+            return true;
+        }
+        else if (m_cycle == CycleType.Clip)
         {
             if (!m_clip)
             {

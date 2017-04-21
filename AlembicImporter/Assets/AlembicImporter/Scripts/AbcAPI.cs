@@ -240,6 +240,7 @@ public class AbcAPI
     
     [DllImport ("AlembicImporter")] public static extern float      aiGetObjectStartTime(aiObject obj);
     [DllImport ("AlembicImporter")] public static extern float      aiGetObjectEndTime(aiObject obj);
+    [DllImport ("AlembicImporter")] public static extern bool       aiIsVisible(aiObject obj);
 
     class ImportContext
     {

@@ -43,6 +43,7 @@ public:
 
     float       getStartTime() const;
     float       getEndTime() const;
+    bool        isVisible() const;
 
 public:
 

@@ -32,6 +32,7 @@ aiSchemaBase::aiSchemaBase(aiObject *obj)
     , m_pendingTopologyChanged(false)
     , m_startTime(0.0f)
     , m_endTime(0.0f)
+    , m_visible(true)
 {
     // start with base config
     m_config = obj->getContext()->getConfig();

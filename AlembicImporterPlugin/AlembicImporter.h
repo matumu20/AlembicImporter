@@ -294,5 +294,6 @@ aiCLinkage aiExport void            aiCameraGetData(aiCameraSample* sample, aiCa
 
 aiCLinkage aiExport float           aiGetObjectStartTime(aiObject* obj);
 aiCLinkage aiExport float           aiGetObjectEndTime(aiObject* obj);
+aiCLinkage aiExport bool            aiIsVisible(aiObject* obj);
 
 #endif // AlembicImporter_h
