@@ -434,8 +434,12 @@ public class AlembicMesh : AlembicElement
                     {
                         string name = m_trans.gameObject.name + "_split_" + s;
 
-                        Transform trans = m_trans.FindChild(name);
-                        
+                        #if UNITY_2017_1_OR_NEWER
+                            Transform trans = m_trans.Find(name);
+                        #else
+                            Transform trans = m_trans.FindChild(name);
+                        #endif
+
                         if (trans == null)
                         {
                             GameObject go = new GameObject();
@@ -518,7 +522,11 @@ public class AlembicMesh : AlembicElement
                     {
                         string name = m_trans.gameObject.name + "_split_" + s;
 
-                        Transform trans = m_trans.FindChild(name);
+                        #if UNITY_2017_1_OR_NEWER
+                            Transform trans = m_trans.Find(name);
+                        #else
+                            Transform trans = m_trans.FindChild(name);
+                        #endif
 
                         if (trans == null)
                         {

@@ -16,6 +16,8 @@ if use_externals:
 
 env = excons.MakeBaseEnv()
 
+unity_ver = ARGUMENTS.get("unityver", "5.3")
+
 # I don't know whst this whole PatchLibrary is. Looks like a hack that we don't
 # really need. Let's disable it for now by defining aiMaster
 defines = ["aiMaster"]
@@ -24,9 +26,19 @@ lib_dirs = []
 libs = []
 embed_libs = []
 customs = []
+
+
+shaders = []
+if os.path.exists("AlembicImporter/Assets/AlembicImporter/Shaders/%s/"%unity_ver):
+  shaders = glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/%s/DataViz.shader*" %unity_ver)
+else:
+  first_deved_unity_ver = "5.3"
+  shaders = glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/%s/DataViz.shader*" %first_deved_unity_ver)
+
 install_files = {"unity/AlembicImporter/Scripts": glob.glob("AlembicImporter/Assets/AlembicImporter/Scripts/*.cs*"),
                  "unity/AlembicImporter/Editor": glob.glob("AlembicImporter/Assets/AlembicImporter/Editor/*.cs*"),
-                 "unity/AlembicImporter/Shaders": glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/DataViz.shader*")}
+                 "unity/AlembicImporter/Shaders": shaders}
+
 sources = filter(lambda x: os.path.basename(x) not in ["pch.cpp"], glob.glob("AlembicImporterPlugin/*.cpp"))
 sources.extend(glob.glob("AlembicImporterPlugin/Schema/*.cpp"))
 
@@ -41,9 +53,21 @@ if excons.GetArgument("texture-mesh", 0, int) != 0:
   sources.extend(["AlembicImporterPlugin/GraphicsDevice/aiGraphicsDevice.cpp"])
   install_files["unity/AlembicImporter/Meshes"] = glob.glob("AlembicImporter/Assets/AlembicImporter/Meshes/IndexOnlyMesh.asset*")
   install_files["unity/AlembicImporter/Materials"] = glob.glob("AlembicImporter/Assets/AlembicImporter/Materials/AlembicStandard.mat*")
-  install_files["unity/AlembicImporter/Shaders"].extend(glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/AICommon.cginc*") +
-                                                        glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/AIStandard.shader*"))
-  
+
+  shaders = []
+  if os.path.exists("AlembicImporter/Assets/AlembicImporter/Shaders/%s/"%unity_ver):
+    shaders = glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/%s/AICommon.cginc*" %unity_ver)
+    shaders += glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/%s/AIStandard.shader*" %unity_ver)
+  else:
+    first_deved_unity_ver = "5.3"
+    shaders = glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/%s/AICommon.cginc*" %first_deved_unity_ver)
+    shaders += glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/%s/AIStandard.shader*" %first_deved_unity_ver)
+
+  #install_files["unity/AlembicImporter/Shaders"].extend(glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/%s/AICommon.cginc*" %unity_ver) +
+  #                                                      glob.glob("AlembicImporter/Assets/AlembicImporter/Shaders/%s/AIStandard.shader*" %unity_ver))
+
+  install_files["unity/AlembicImporter/Shaders"].extend(shaders)
+
   if excons.GetArgument("opengl", 1, int) != 0:
     defines.extend(["aiSupportOpenGL", "aiDontForceStaticGLEW"])
     sources.append("AlembicImporterPlugin/GraphicsDevice/aiGraphicsDeviceOpenGL.cpp")

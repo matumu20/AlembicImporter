@@ -362,7 +362,12 @@ public class AbcAPI
         Transform parent = ic.parent;
 
         string childName = aiGetName(obj);
-        var trans = parent.FindChild(childName);
+
+        #if UNITY_2017_1_OR_NEWER
+          var trans = parent.Find(childName);
+        #else
+          var trans = parent.FindChild(childName);
+        #endif
 
         if (trans == null)
         {
@@ -487,7 +492,11 @@ public class AbcUtils
     
     private static GameObject SearchNodeInstance(Transform parent, string name, int instNum, ref int curInst, System.Type checkCompType=null)
     {
-        Transform node = parent.FindChild(name);
+        #if UNITY_2017_1_OR_NEWER
+          Transform node = parent.Find(name);
+        #else
+          Transform node = parent.FindChild(name);
+        #endif
 
         if (node != null)
         {
@@ -541,7 +550,12 @@ public class AbcUtils
 
             while (curNode != null && curPath < paths.Length)
             {
-                Transform child = curNode.FindChild(paths[curPath]);
+                #if UNITY_2017_1_OR_NEWER
+                    Transform child = curNode.Find(paths[curPath]);
+                #else
+                    Transform child = curNode.FindChild(paths[curPath]);
+                #endif
+
 
                 if (child == null)
                 {

@@ -114,7 +114,11 @@ public class AlembicMaterial : MonoBehaviour
 
                     MeshRenderer splitRenderer = null;
 
-                    Transform split = gameObject.transform.FindChild(gameObject.name + "_split_" + submesh.splitIndex);
+                    #if UNITY_2017_1_OR_NEWER
+                        Transform split = gameObject.transform.Find(gameObject.name + "_split_" + submesh.splitIndex);
+                    #else
+                        Transform split = gameObject.transform.FindChild(gameObject.name + "_split_" + submesh.splitIndex);
+                    #endif
 
                     if (split == null)
                     {
